@@ -10,5 +10,5 @@ tree = discord.app_commands.CommandTree(client)
 
 
 @client.event
-async def on_ready():
+async def on_ready() -> None:
     await tree.sync()
