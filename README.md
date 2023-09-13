@@ -18,7 +18,8 @@ Anyone and everyone is more than welcome to contribute! Read [CONTRIBUTING.md](.
     - Speak
     - Use Voice Activity
     - Use External Sounds
-so you can use this link to invite the bot: `https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&permissions=35186556290048&scope=bot`
+
+    so you can use this link to invite the bot: `https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&permissions=35186556290048&scope=bot`
 4. Run the bot
     ```sh
     python main.py
