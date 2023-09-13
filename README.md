@@ -19,12 +19,13 @@ Anyone and everyone is more than welcome to contribute! Read [CONTRIBUTING.md](.
     - Use Voice Activity
     - Use External Sounds
 
-    so you can use this link to invite the bot: `https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&permissions=35186556290048&scope=bot`
+    You can use this link to invite the bot (replace `{CLIENT_ID}` with its id):\
+    `https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&permissions=35186556290048&scope=bot`
 4. Run the bot
     ```sh
     python main.py
     ```
-4. Listen to some tunes 🎶 (see [Usage](#Usage))
+5. Listen to some tunes 🎶 (see [Usage](#Usage))
 
 ## Usage
 TODO: list out all the commands and how to use them
