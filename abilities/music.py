@@ -9,4 +9,6 @@ async def play(interaction: Interaction, name: str) -> None:
     """
     TODO: Implement & document this command
     """
-    await interaction.response.send_message(f"Hello {interaction.user.mention}! Now playing: {name}")
+    await interaction.response.send_message(
+        f"Hello {interaction.user.mention}! Now playing: {name}"
+    )
