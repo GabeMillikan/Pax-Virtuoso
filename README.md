@@ -9,6 +9,11 @@ Anyone and everyone is more than welcome to contribute! Read [CONTRIBUTING.md](.
     ```sh
     pip install -r requirements.txt
     ```
+    or with [pip-tools](https://pypi.org/project/pip-tools/)
+    ```sh
+    pip install pip-tools
+    pip-sync
+    ```
 2. Create and fill out `.env` (see [ENVIRONMENT.md](./ENVIRONMENT.md) for more details)
 3. [Add the bot to your server.](https://discordpy.readthedocs.io/en/stable/discord.html#inviting-your-bot) Note that this bot requires the following permissions:
     - Read Messages/View Channels
