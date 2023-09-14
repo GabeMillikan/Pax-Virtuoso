@@ -1,4 +1,3 @@
-import urllib.request
 from dataclasses import dataclass
 from typing import Any
 
