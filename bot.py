@@ -2,7 +2,7 @@ import discord
 
 intents = discord.Intents.none()
 
-# so that when someone plays a song, we can check what voice channel they're in
+intents.guilds = True
 intents.voice_states = True
 
 client = discord.Client(intents=intents)
