@@ -6,9 +6,9 @@ import discord
 import youtube_dl
 from discord import Interaction, app_commands
 
-from bot import tree
+from bot import client, tree
 
-youtube_dl.utils.bug_reports_message = lambda: ""
+# youtube_dl.utils.bug_reports_message = lambda: ""
 
 ytdl_format_options = {
     "format": "bestaudio/best",
@@ -22,9 +22,6 @@ ytdl_format_options = {
     "default_search": "auto",
     "source_address": "0.0.0.0",  # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
-
-ffmpeg_options = {"options": "-vn"}
-
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
 
@@ -66,30 +63,51 @@ async def play(interaction: Interaction, name: str) -> None:
     """
     Plays a song from YouTube.
     """
-    if isinstance(interaction.user, discord.Member) and interaction.user.voice is None:
+    guild = interaction.guild
+    member = interaction.user
+    if not isinstance(member, discord.Member) or not guild:
+        if guild:
+            member = await guild.fetch_member(member.id)
+        else:
+            await interaction.response.send_message(
+                "I cannot play music in DMs.",
+            )
+            return
+
+    if member.voice is None:
         await interaction.response.send_message(
             "You are not connected to a voice channel.",
         )
         return
 
-    channel = interaction.user.voice.channel
+    channel = member.voice.channel
     if channel is None:
         await interaction.response.send_message(
             "Error: Unable to find a voice channel.",
         )
         return
 
-    await channel.connect()
+    await interaction.response.defer()
 
-    async with interaction.channel.typing():
+    if isinstance(interaction.channel, discord.abc.Messageable):
+        async with interaction.channel.typing():
+            filename = await YTDLSource.from_url(name, loop=client.loop)
+    else:
         filename = await YTDLSource.from_url(name, loop=client.loop)
-        player = discord.FFmpegPCMAudio(
-            filename,
-            **ffmpeg_options,
-        )
-        interaction.guild.voice_client.play(
-            player,
-            after=lambda e: print(f"Player error: {e}") if e else None,
-        )
+
+    if isinstance(guild.voice_client, discord.VoiceClient):
+        voice_client = guild.voice_client
+        await voice_client.move_to(channel)
+    else:
+        voice_client = await channel.connect()
+
+    player = discord.FFmpegPCMAudio(
+        filename,
+        options="-vn",  # no video
+    )
+    voice_client.play(
+        player,
+        after=lambda e: print(f"Player error: {e}") if e else None,
+    )
 
     await interaction.response.send_message(f"Now playing: {filename}")
