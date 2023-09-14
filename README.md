@@ -9,8 +9,10 @@ Anyone and everyone is more than welcome to contribute! Read [CONTRIBUTING.md](.
     ```sh
     pip install -r requirements.txt
     ```
-    or with [pip-tools](https://pypi.org/project/pip-tools/)
+    or with [pip-tools](https://pypi.org/project/pip-tools/) in a virtual environment
     ```sh
+    python -m venv .venv\
+    .\venv\Scripts\activate
     pip install pip-tools
     pip-sync
     ```
