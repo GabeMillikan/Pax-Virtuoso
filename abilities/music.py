@@ -3,12 +3,10 @@ from __future__ import annotations
 import asyncio
 
 import discord
-import youtube_dl
+import yt_dlp
 from discord import Interaction, app_commands
 
 from bot import client, tree
-
-# youtube_dl.utils.bug_reports_message = lambda: ""
 
 ytdl_format_options = {
     "format": "bestaudio/best",
@@ -22,7 +20,7 @@ ytdl_format_options = {
     "default_search": "auto",
     "source_address": "0.0.0.0",  # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
+ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -110,4 +108,4 @@ async def play(interaction: Interaction, name: str) -> None:
         after=lambda e: print(f"Player error: {e}") if e else None,
     )
 
-    await interaction.response.send_message(f"Now playing: {filename}")
+    await interaction.followup.send(f"Now playing: {filename}")
