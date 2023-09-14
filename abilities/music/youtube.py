@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 
 import discord
 import yt_dlp
 
-ytdl_download_directory = Path(__file__).parent / "downloads"
 ytdl_format_options = {
     "format": "bestaudio/best",
     "restrictfilenames": True,
@@ -18,7 +16,6 @@ ytdl_format_options = {
     "no_warnings": True,
     "default_search": "auto",
     "source_address": "0.0.0.0",  # bind to ipv4 since ipv6 addresses cause issues sometimes
-    "outtmpl": str(ytdl_download_directory / "%(title)s.%(ext)s"),
 }
 ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 
@@ -52,5 +49,4 @@ class YTDLSource(discord.PCMVolumeTransformer):
         if "entries" in data:
             # take first item from a playlist
             data = data["entries"][0]
-
         return data["title"] if stream else ytdl.prepare_filename(data)

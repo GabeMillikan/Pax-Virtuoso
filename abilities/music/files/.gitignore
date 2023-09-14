@@ -1,0 +1,4 @@
+# This directory exists to contain temporary files downloaded from youtube.
+# The .gitignore prevents git from tracking those binary files
+*
+!.gitignore
