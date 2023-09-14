@@ -6,7 +6,7 @@ from pathlib import Path
 import discord
 import yt_dlp
 
-ytdl_files_directory = Path(__file__).parent / "files"
+ytdl_download_directory = Path(__file__).parent / "downloads"
 ytdl_format_options = {
     "format": "bestaudio/best",
     "restrictfilenames": True,
@@ -18,7 +18,7 @@ ytdl_format_options = {
     "no_warnings": True,
     "default_search": "auto",
     "source_address": "0.0.0.0",  # bind to ipv4 since ipv6 addresses cause issues sometimes
-    "outtmpl": str(ytdl_files_directory / "%(title)s.%(ext)s"),
+    "outtmpl": str(ytdl_download_directory / "%(title)s.%(ext)s"),
 }
 ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 
