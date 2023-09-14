@@ -1,0 +1,5 @@
+black==23.9.1
+discord.py[voice]==2.3.2
+pip-tools==7.3.0
+python-dotenv==1.0.0
+yt-dlp==2023.7.6
