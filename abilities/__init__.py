@@ -1,1 +1,1 @@
-from . import meta, music
+from . import meta, music  # noqa
