@@ -40,7 +40,7 @@ async def play(interaction: Interaction, url: str) -> None:
 
     await interaction.response.defer()
 
-    audio_source = youtube.to_audio_source(name)
+    audio_source = youtube.to_audio_source(url)
 
     if isinstance(guild.voice_client, discord.VoiceClient):
         voice_client = guild.voice_client
@@ -53,4 +53,4 @@ async def play(interaction: Interaction, url: str) -> None:
         after=lambda e: print(f"Player error: {e}") if e else None,
     )
 
-    await interaction.followup.send(f"Now playing: {name}")
+    await interaction.followup.send(f"Now playing: {url}")
