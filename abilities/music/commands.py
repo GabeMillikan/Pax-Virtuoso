@@ -3,14 +3,14 @@ from __future__ import annotations
 import discord
 from discord import Interaction, app_commands
 
-from bot import client, tree
+from bot import tree
 
-from .youtube import YTDLSource
+from . import youtube
 
 
 @tree.command(description="Plays a song")
-@app_commands.describe(name="The name of the song.")
-async def play(interaction: Interaction, name: str) -> None:
+@app_commands.describe(url="The url of a YouTube video.")
+async def play(interaction: Interaction, url: str) -> None:
     """
     Plays a song from YouTube.
     """
@@ -40,11 +40,7 @@ async def play(interaction: Interaction, name: str) -> None:
 
     await interaction.response.defer()
 
-    if isinstance(interaction.channel, discord.abc.Messageable):
-        async with interaction.channel.typing():
-            filename = await YTDLSource.from_url(name, loop=client.loop)
-    else:
-        filename = await YTDLSource.from_url(name, loop=client.loop)
+    audio_source = youtube.to_audio_source(url)
 
     if isinstance(guild.voice_client, discord.VoiceClient):
         voice_client = guild.voice_client
@@ -52,13 +48,9 @@ async def play(interaction: Interaction, name: str) -> None:
     else:
         voice_client = await channel.connect()
 
-    player = discord.FFmpegPCMAudio(
-        filename,
-        options="-vn",  # no video
-    )
     voice_client.play(
-        player,
+        audio_source,
         after=lambda e: print(f"Player error: {e}") if e else None,
     )
 
-    await interaction.followup.send(f"Now playing: {filename}")
+    await interaction.followup.send(f"Now playing: {url}")

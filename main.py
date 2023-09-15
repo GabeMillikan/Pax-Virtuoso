@@ -1,4 +1,4 @@
-import abilities
+import abilities  # noqa
 from bot import client
 from config import api_token
 

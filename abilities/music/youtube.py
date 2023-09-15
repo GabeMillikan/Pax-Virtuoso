@@ -1,56 +1,48 @@
-from __future__ import annotations
-
-import asyncio
-from pathlib import Path
+import subprocess
+from typing import IO
 
 import discord
-import yt_dlp
-
-ytdl_download_directory = Path(__file__).parent / "downloads"
-ytdl_format_options = {
-    "format": "bestaudio/best",
-    "restrictfilenames": True,
-    "noplaylist": True,
-    "nocheckcertificate": True,
-    "ignoreerrors": False,
-    "logtostderr": False,
-    "quiet": True,
-    "no_warnings": True,
-    "default_search": "auto",
-    "source_address": "0.0.0.0",  # bind to ipv4 since ipv6 addresses cause issues sometimes
-    "outtmpl": str(ytdl_download_directory / "%(title)s.%(ext)s"),
-}
-ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
+from discord.oggparse import OggStream
 
 
-class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(
-        self: YTDLSource,
-        source: discord.AudioSource,
-        *,
-        data: dict,
-        volume: float = 0.5,
-    ) -> None:
-        super().__init__(source, volume)
-        self.data = data
-        self.title = data.get("title")
-        self.url = ""
+class OpusAudioSource(discord.AudioSource):
+    def __init__(self, stream: IO[bytes]) -> None:
+        self.stream = OggStream(stream)
+        self.packets_iterator = self.stream.iter_packets()
 
-    @classmethod
-    async def from_url(
-        cls: type,
-        url: str,
-        *,
-        loop: asyncio.AbstractEventLoop | None = None,
-        stream: bool = False,
-    ) -> str:
-        loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(
-            None,
-            lambda: ytdl.extract_info(url, download=not stream),
-        )
-        if "entries" in data:
-            # take first item from a playlist
-            data = data["entries"][0]
+    def read(self) -> bytes:
+        return next(self.packets_iterator, b"")
 
-        return data["title"] if stream else ytdl.prepare_filename(data)
+    def is_opus(self) -> bool:
+        return True
+
+
+def to_audio_source(url: str) -> discord.AudioSource:
+    """
+    Assumes that `yt-dlp` and `ffmpeg` are installed on your PATH.
+    """
+
+    download_process = subprocess.Popen(
+        ["yt-dlp", "--quiet", "--format", "bestaudio/best", url, "-o", "-"],
+        stdout=subprocess.PIPE,
+    )
+    assert download_process.stdout
+
+    encoding_process = subprocess.Popen(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-i",
+            "pipe:0",
+            "-f",
+            "opus",
+            "pipe:1",
+        ],
+        stdin=download_process.stdout,
+        stdout=subprocess.PIPE,
+    )
+    assert encoding_process.stdout
+
+    return OpusAudioSource(encoding_process.stdout)
