@@ -19,15 +19,11 @@ brotli==1.1.0
 build==1.0.3
     # via pip-tools
 certifi==2023.7.22
-    # via
-    #   requests
-    #   yt-dlp
+    # via yt-dlp
 cffi==1.15.1
     # via pynacl
 charset-normalizer==2.1.1
-    # via
-    #   aiohttp
-    #   requests
+    # via aiohttp
 click==8.1.7
     # via
     #   black
@@ -43,9 +39,7 @@ frozenlist==1.4.0
     #   aiohttp
     #   aiosignal
 idna==3.4
-    # via
-    #   requests
-    #   yarl
+    # via yarl
 multidict==6.0.4
     # via
     #   aiohttp
@@ -74,8 +68,6 @@ pyproject-hooks==1.0.0
     # via build
 python-dotenv==1.0.0
     # via -r requirements.in
-requests==2.28.1
-    # via -r requirements.in
 tomli==2.0.1
     # via
     #   black
@@ -84,8 +76,6 @@ tomli==2.0.1
     #   pyproject-hooks
 typing-extensions==4.7.1
     # via black
-urllib3==1.26.16
-    # via requests
 websockets==11.0.3
     # via yt-dlp
 wheel==0.41.2
