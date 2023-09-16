@@ -22,7 +22,7 @@ certifi==2023.7.22
     # via yt-dlp
 cffi==1.15.1
     # via pynacl
-charset-normalizer==2.1.1
+charset-normalizer==3.2.0
     # via aiohttp
 click==8.1.7
     # via
@@ -60,7 +60,7 @@ platformdirs==3.10.0
     # via black
 pycparser==2.21
     # via cffi
-pycryptodomex==3.18.0
+pycryptodomex==3.19.0
     # via yt-dlp
 pynacl==1.5.0
     # via discord-py
