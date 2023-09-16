@@ -17,7 +17,7 @@ class OpusAudioSource(discord.AudioSource):
         return True
 
 
-def to_audio_source(url: str) -> discord.AudioSource:
+def to_audio_source(song: str) -> discord.AudioSource:
     """
     Assumes that `yt-dlp` and `ffmpeg` are installed on your PATH.
     """
@@ -30,7 +30,7 @@ def to_audio_source(url: str) -> discord.AudioSource:
             "ytsearch",
             "--format",
             "bestaudio/best",
-            url,
+            song,
             "-o",
             "-",
         ],
