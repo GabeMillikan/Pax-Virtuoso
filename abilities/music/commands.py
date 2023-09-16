@@ -9,7 +9,7 @@ from . import youtube
 
 
 @tree.command(description="Plays a song")
-@app_commands.describe(url="The url of a YouTube video.")
+@app_commands.describe(url="The URL or name of a YouTube video.")
 async def play(interaction: Interaction, url: str) -> None:
     """
     Plays a song from YouTube.

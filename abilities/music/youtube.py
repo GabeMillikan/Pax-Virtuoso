@@ -23,7 +23,17 @@ def to_audio_source(url: str) -> discord.AudioSource:
     """
 
     download_process = subprocess.Popen(
-        ["yt-dlp", "--quiet", "--format", "bestaudio/best", url, "-o", "-"],
+        [
+            "yt-dlp",
+            "--quiet",
+            "--default-search",
+            "ytsearch",
+            "--format",
+            "bestaudio/best",
+            url,
+            "-o",
+            "-",
+        ],
         stdout=subprocess.PIPE,
     )
     assert download_process.stdout
