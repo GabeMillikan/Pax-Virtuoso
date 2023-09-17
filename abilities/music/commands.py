@@ -9,8 +9,8 @@ from . import youtube
 
 
 @tree.command(description="Plays a song")
-@app_commands.describe(url="The url of a YouTube video.")
-async def play(interaction: Interaction, url: str) -> None:
+@app_commands.describe(song="The URL or name of a YouTube video.")
+async def play(interaction: Interaction, song: str) -> None:
     """
     Plays a song from YouTube.
     """
@@ -40,7 +40,7 @@ async def play(interaction: Interaction, url: str) -> None:
 
     await interaction.response.defer()
 
-    audio_source = youtube.to_audio_source(url)
+    audio_source = youtube.to_audio_source(song)
 
     if isinstance(guild.voice_client, discord.VoiceClient):
         voice_client = guild.voice_client
@@ -53,4 +53,4 @@ async def play(interaction: Interaction, url: str) -> None:
         after=lambda e: print(f"Player error: {e}") if e else None,
     )
 
-    await interaction.followup.send(f"Now playing: {url}")
+    await interaction.followup.send(f"Now playing: {song}")

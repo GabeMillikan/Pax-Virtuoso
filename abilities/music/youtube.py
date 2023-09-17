@@ -17,13 +17,23 @@ class OpusAudioSource(discord.AudioSource):
         return True
 
 
-def to_audio_source(url: str) -> discord.AudioSource:
+def to_audio_source(song: str) -> discord.AudioSource:
     """
     Assumes that `yt-dlp` and `ffmpeg` are installed on your PATH.
     """
 
     download_process = subprocess.Popen(
-        ["yt-dlp", "--quiet", "--format", "bestaudio/best", url, "-o", "-"],
+        [
+            "yt-dlp",
+            "--quiet",
+            "--default-search",
+            "ytsearch",
+            "--format",
+            "bestaudio/best",
+            song,
+            "-o",
+            "-",
+        ],
         stdout=subprocess.PIPE,
     )
     assert download_process.stdout
