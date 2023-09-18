@@ -53,3 +53,26 @@ async def play(interaction: Interaction, song: str) -> None:
     )
 
     await interaction.followup.send(f"Now playing: {song}")
+
+
+@tree.command(description="Stops playing music")
+async def stop(interaction: Interaction) -> None:
+    """
+    Stops playing music.
+    """
+    guild = interaction.guild
+    if guild is None:
+        await interaction.response.send_message(
+            "I cannot stop music in DMs.",
+        )
+        return
+
+    if guild.voice_client is None:
+        await interaction.response.send_message(
+            "I am not playing music.",
+        )
+        return
+
+    await interaction.response.defer()
+    await guild.voice_client.disconnect(force=True)
+    await interaction.followup.send("Stopped playing music.")
