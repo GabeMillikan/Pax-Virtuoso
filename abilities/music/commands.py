@@ -39,8 +39,7 @@ async def play(interaction: Interaction, song: str) -> None:
         return
 
     await interaction.response.defer()
-
-    audio_source = youtube.to_audio_source(song)
+    audio_source = await youtube.stream(song)
 
     if isinstance(guild.voice_client, discord.VoiceClient):
         voice_client = guild.voice_client
