@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import asyncio
 import subprocess
 from typing import IO
 
@@ -15,6 +18,35 @@ class OpusAudioSource(discord.AudioSource):
 
     def is_opus(self) -> bool:
         return True
+
+
+class BufferedAudioSource(discord.AudioSource):
+    """
+    Wraps an existing AudioSource, with an additional "peek" method.
+    This allows the source to be buffered for up to one packet.
+    """
+
+    def __init__(self, source: discord.AudioSource) -> None:
+        self.source = source
+        self.peeked_packet: bytes | None = None
+
+    def peek(self) -> bytes:
+        """
+        Waits for and returns the next packet from the AudioSource
+        without actually removing that packet from the AudioSource.
+        """
+        self.peeked_packet = self.read()
+        return self.peeked_packet
+
+    def read(self) -> bytes:
+        if self.peeked_packet is not None:
+            pp, self.peeked_packet = self.peeked_packet, None
+            return pp
+
+        return self.source.read()
+
+    def is_opus(self) -> bool:
+        return self.source.is_opus()
 
 
 def to_audio_source(song: str) -> discord.AudioSource:
@@ -56,3 +88,20 @@ def to_audio_source(song: str) -> discord.AudioSource:
     assert encoding_process.stdout
 
     return OpusAudioSource(encoding_process.stdout)
+
+
+async def stream(song: str) -> discord.AudioSource:
+    """
+    Initiates a YouTube download via yt-dlp and pipes that through
+    FFMPEG to convert it to the OPUS format.
+
+    Then, waits until the first OPUS packet to be ready for upload to Discord.
+
+    Finally, returns a discord.AudioSource for the song.
+    """
+    audio_source = await asyncio.to_thread(to_audio_source, song)
+
+    buffered_audio_source = BufferedAudioSource(audio_source)
+    await asyncio.to_thread(buffered_audio_source.peek)
+
+    return buffered_audio_source
