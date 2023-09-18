@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import subprocess
 from typing import IO
@@ -24,7 +26,7 @@ class BufferedAudioSource(discord.AudioSource):
     This allows the source to be buffered for up to one packet.
     """
 
-    def __init__(self, source: discord.AudioSource):
+    def __init__(self, source: discord.AudioSource) -> None:
         self.source = source
         self.peeked_packet: bytes | None = None
 
