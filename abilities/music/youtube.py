@@ -28,7 +28,7 @@ class BufferedAudioSource(discord.AudioSource):
         self.source = source
         self.peeked_packet: bytes | None = None
 
-    async def peek(self) -> bytes:
+    def peek(self) -> bytes:
         """
         Waits for and returns the next packet from the AudioSource
         without actually removing that packet from the AudioSource.
@@ -100,6 +100,6 @@ async def stream(song: str) -> discord.AudioSource:
     audio_source = await asyncio.to_thread(to_audio_source, song)
 
     buffered_audio_source = BufferedAudioSource(audio_source)
-    await buffered_audio_source.peek()
+    await asyncio.to_thread(buffered_audio_source.peek)
 
     return buffered_audio_source
