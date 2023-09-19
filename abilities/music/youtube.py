@@ -5,7 +5,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from math import ceil
-from typing import IO, Any, Callable, TypeVar
+from typing import IO, Callable, TypeVar
 
 import discord
 from discord.oggparse import OggStream
