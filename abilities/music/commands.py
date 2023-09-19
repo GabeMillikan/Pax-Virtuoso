@@ -48,7 +48,21 @@ async def play(interaction: Interaction, song: str) -> None:
     embed = ui.embed_song(audio)
     embed.add_field(name="Requested By", value=interaction.user.mention)
     embed.add_field(name="Voice Channel", value=channel.mention)
-    await interaction.followup.send(embed=embed)
+
+    async def cancel(cancel_interaction: discord.Interaction) -> None:
+        # TODO: account for the song queue
+        if cancel_interaction.guild and cancel_interaction.guild.voice_client:
+            await cancel_interaction.guild.voice_client.disconnect(force=True)
+
+        await cancel_interaction.response.send_message(
+            "Canceled!",
+            ephemeral=True,
+            delete_after=5,
+        )
+        await interaction.delete_original_response()
+
+    view = ui.CancelView(on_cancel=cancel)
+    await interaction.followup.send(embed=embed, view=view)
 
     await audio.preload()
     if isinstance(guild.voice_client, discord.VoiceClient):
