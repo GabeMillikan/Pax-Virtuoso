@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 import discord
 from discord import Interaction, app_commands
 
@@ -14,6 +16,7 @@ async def play(interaction: Interaction, song: str) -> None:
     """
     Plays a song from YouTube.
     """
+    queue = asyncio.Queue()
     guild = interaction.guild
     member = interaction.user
     if not isinstance(member, discord.Member) or not guild:
@@ -47,12 +50,61 @@ async def play(interaction: Interaction, song: str) -> None:
     else:
         voice_client = await channel.connect()
 
-    voice_client.play(
-        audio_source,
-        after=lambda e: print(f"Player error: {e}") if e else None,
-    )
+    if not voice_client.is_playing():
+        voice_client.play(
+            audio_source,
+            after=lambda e: print(f"Player error: {e}") if e else None,
+        )
+        await interaction.followup.send(f"Now playing: {song}")
+    else:
+        await interaction.followup.send(f"Added {song} to the queue.")
+        await queue.put((audio_source, song))
 
-    await interaction.followup.send(f"Now playing: {song}")
+    while voice_client.is_playing() or not queue.empty():
+        await asyncio.sleep(1)
+
+        if not voice_client.is_playing() and not queue.empty():
+            audio_source, song = await queue.get()
+            voice_client.play(
+                audio_source,
+                after=lambda e: print(f"Player error: {e}") if e else None,
+            )
+            await interaction.followup.send(f"Now playing: {song}")
+
+    await voice_client.disconnect(force=False)
+
+
+@tree.command(description="Skips the current song in the queue")
+async def skip(interaction: Interaction) -> None:
+    """
+    Skips the current song in the queue.
+    """
+    guild = interaction.guild
+    if guild is None:
+        await interaction.response.send_message(
+            "I cannot skip music in DMs.",
+        )
+        return
+
+    if guild.voice_client is None:
+        await interaction.response.send_message(
+            "I am not playing music.",
+        )
+        return
+
+    voice_client = None
+    if isinstance(guild.voice_client, discord.VoiceClient):
+        voice_client = guild.voice_client
+
+    if voice_client is None or not voice_client.is_playing():
+        await interaction.response.send_message(
+            "There is no music playing to skip.",
+        )
+        return
+
+    voice_client.stop()
+    await interaction.response.defer()
+    await interaction.followup.send("Skipped the current song.")
 
 
 @tree.command(description="Stops playing music")
@@ -74,5 +126,5 @@ async def stop(interaction: Interaction) -> None:
         return
 
     await interaction.response.defer()
-    await guild.voice_client.disconnect(force=True)
+    await guild.voice_client.disconnect(force=False)
     await interaction.followup.send("Stopped playing music.")
