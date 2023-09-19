@@ -7,7 +7,7 @@ from discord import Interaction, app_commands
 
 from bot import tree
 
-from . import youtube
+from . import ui, youtube
 
 
 @tree.command(description="Plays a song")
@@ -42,8 +42,15 @@ async def play(interaction: Interaction, song: str) -> None:
         return
 
     await interaction.response.defer()
-    audio_source = await youtube.stream(song)
 
+    audio = await youtube.fetch(song)
+
+    embed = ui.embed_song(audio)
+    embed.add_field(name="Requested By", value=interaction.user.mention)
+    embed.add_field(name="Voice Channel", value=channel.mention)
+    await interaction.followup.send(embed=embed)
+
+    await audio.preload()
     if isinstance(guild.voice_client, discord.VoiceClient):
         voice_client = guild.voice_client
         await voice_client.move_to(channel)
@@ -52,21 +59,21 @@ async def play(interaction: Interaction, song: str) -> None:
 
     if not voice_client.is_playing():
         voice_client.play(
-            audio_source,
+            audio.stream,
             after=lambda e: print(f"Player error: {e}") if e else None,
         )
         await interaction.followup.send(f"Now playing: {song}")
     else:
         await interaction.followup.send(f"Added {song} to the queue.")
-        await queue.put((audio_source, song))
+        await queue.put((audio, song))
 
     while voice_client.is_playing() or not queue.empty():
         await asyncio.sleep(1)
 
         if not voice_client.is_playing() and not queue.empty():
-            audio_source, song = await queue.get()
+            audio, song = await queue.get()
             voice_client.play(
-                audio_source,
+                audio.stream,
                 after=lambda e: print(f"Player error: {e}") if e else None,
             )
             await interaction.followup.send(f"Now playing: {song}")
