@@ -4,9 +4,12 @@ import discord
 
 from .youtube import Song
 
+GREEN = 0x8EC356
+BLUE = 0x51A8DB
+
 
 def embed_song(song: Song, title_prefix: str = "Now Playing: ") -> discord.Embed:
-    e = discord.Embed(title=f"{title_prefix}{song.title}", url=song.url, color=0xEC3718)
+    e = discord.Embed(title=f"{title_prefix}{song.title}", url=song.url, color=GREEN)
     e.set_thumbnail(url=song.thumbnail_url)
 
     e.add_field(
