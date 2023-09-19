@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import subprocess
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from math import ceil
 from typing import IO, Callable, TypeVar
 
@@ -89,7 +89,7 @@ D = TypeVar("D")
 def convert(data: D, converter: Callable[[D], T], default: T) -> T:
     try:
         return converter(data)
-    except:
+    except Exception:
         return default
 
 
@@ -180,7 +180,9 @@ def fetch_synchronously(song: str) -> Song:
         view_count=convert(view_count, int, 0),
         timestamp=convert(
             upload_date,
-            lambda d: int(datetime.strptime(d, "%Y%m%d").timestamp()),
+            lambda d: int(
+                datetime.strptime(d, "%Y%m%d").replace(tzinfo=timezone.utc).timestamp(),
+            ),
             0,
         ),
         uploader=Uploader(
