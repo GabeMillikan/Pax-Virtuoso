@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import subprocess
-from typing import IO
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from math import ceil
+from typing import IO, Callable, TypeVar
 
 import discord
 from discord.oggparse import OggStream
@@ -49,14 +52,78 @@ class BufferedAudioSource(discord.AudioSource):
         return self.source.is_opus()
 
 
-def to_audio_source(song: str) -> discord.AudioSource:
+@dataclass
+class Uploader:
+    id: str
+    nickname: str
+    url: str
+    subscribers: int
+
+
+@dataclass
+class Song:
+    id: str
+    title: str
+    thumbnail_url: str
+    duration: int
+    view_count: int
+    timestamp: int
+    uploader: Uploader
+    stream: BufferedAudioSource
+
+    @property
+    def url(self) -> str:
+        return f"https://www.youtube.com/watch?v={self.id}"
+
+    async def preload(self) -> None:
+        """
+        Simply waits until first packet of the song is available.
+        """
+        await asyncio.to_thread(self.stream.peek)
+
+
+T = TypeVar("T")
+D = TypeVar("D")
+
+
+def convert(data: D, converter: Callable[[D], T], default: T) -> T:
+    try:
+        return converter(data)
+    except Exception:
+        return default
+
+
+def fetch_synchronously(song: str) -> Song:
     """
     Assumes that `yt-dlp` and `ffmpeg` are installed on your PATH.
     """
     download_process = subprocess.Popen(
         [
             "yt-dlp",
-            "--quiet",
+            # Video information
+            "--print",
+            "before_dl:id",
+            "--print",
+            "before_dl:title",
+            "--print",
+            "before_dl:thumbnail",
+            "--print",
+            "before_dl:upload_date",
+            "--print",
+            "before_dl:duration",
+            "--print",
+            "before_dl:view_count",
+            # Uploader information
+            "--print",
+            "before_dl:uploader_id",
+            "--print",
+            "before_dl:uploader",
+            "--print",
+            "before_dl:channel_url",
+            "--print",
+            "before_dl:channel_follower_count",
+            # Download options
+            "--no-simulate",
             "--default-search",
             "ytsearch",
             "--format",
@@ -66,8 +133,13 @@ def to_audio_source(song: str) -> discord.AudioSource:
             "-",
         ],
         stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        bufsize=-1,
     )
     assert download_process.stdout
+    assert download_process.stderr
+    printed_info_stream = download_process.stderr
+    binary_youtube_data_stream = download_process.stdout
 
     encoding_process = subprocess.Popen(
         [
@@ -81,26 +153,47 @@ def to_audio_source(song: str) -> discord.AudioSource:
             "opus",
             "pipe:1",
         ],
-        stdin=download_process.stdout,
+        stdin=binary_youtube_data_stream,
         stdout=subprocess.PIPE,
     )
     assert encoding_process.stdout
+    encoded_audio_stream = encoding_process.stdout
 
-    return OpusAudioSource(encoding_process.stdout)
+    (
+        id,
+        title,
+        thumbnail,
+        upload_date,
+        duration,
+        view_count,
+        uploader_id,
+        uploader,
+        channel_url,
+        channel_follower_count,
+    ) = (printed_info_stream.readline().decode().strip() for _ in range(10))
+
+    return Song(
+        id=id,
+        title=title,
+        thumbnail_url=thumbnail,
+        duration=ceil(convert(duration, float, 0.0)),
+        view_count=convert(view_count, int, 0),
+        timestamp=convert(
+            upload_date,
+            lambda d: int(
+                datetime.strptime(d, "%Y%m%d").replace(tzinfo=timezone.utc).timestamp(),
+            ),
+            0,
+        ),
+        uploader=Uploader(
+            id=uploader_id,
+            nickname=uploader,
+            url=channel_url,
+            subscribers=convert(channel_follower_count, int, 0),
+        ),
+        stream=BufferedAudioSource(OpusAudioSource(encoded_audio_stream)),
+    )
 
 
-async def stream(song: str) -> discord.AudioSource:
-    """
-    Initiates a YouTube download via yt-dlp and pipes that through
-    FFMPEG to convert it to the OPUS format.
-
-    Then, waits until the first OPUS packet to be ready for upload to Discord.
-
-    Finally, returns a discord.AudioSource for the song.
-    """
-    audio_source = await asyncio.to_thread(to_audio_source, song)
-
-    buffered_audio_source = BufferedAudioSource(audio_source)
-    await asyncio.to_thread(buffered_audio_source.peek)
-
-    return buffered_audio_source
+async def fetch(song: str) -> Song:
+    return await asyncio.to_thread(fetch_synchronously, song)

@@ -7,7 +7,7 @@ from discord import Interaction, app_commands
 
 from bot import tree
 
-from . import youtube
+from . import ui, youtube
 
 
 @tree.command(description="Plays a song")
@@ -42,7 +42,9 @@ async def play(interaction: Interaction, song: str) -> None:
         return
 
     await interaction.response.defer()
-    audio_source = await youtube.stream(song)
+
+    audio = await youtube.fetch(song)
+    await audio.preload()
 
     if isinstance(guild.voice_client, discord.VoiceClient):
         voice_client = guild.voice_client
@@ -52,26 +54,32 @@ async def play(interaction: Interaction, song: str) -> None:
 
     if not voice_client.is_playing():
         voice_client.play(
-            audio_source,
+            audio.stream,
             after=lambda e: print(f"Player error: {e}") if e else None,
         )
-        await interaction.followup.send(f"Now playing: {song}")
+        embed = ui.embed_song(audio, title_prefix="Now Playing: ")
     else:
-        await interaction.followup.send(f"Added {song} to the queue.")
-        await queue.put((audio_source, song))
+        await queue.put((audio, song))
+        embed = ui.embed_song(audio, title_prefix="Added to Queue: ")
+
+    embed.add_field(name="Requested By", value=interaction.user.mention)
+    embed.add_field(name="Voice Channel", value=channel.mention)
+    await interaction.followup.send(embed=embed)
 
     while voice_client.is_playing() or not queue.empty():
         await asyncio.sleep(1)
 
         if not voice_client.is_playing() and not queue.empty():
-            audio_source, song = await queue.get()
+            audio, song = await queue.get()
             voice_client.play(
-                audio_source,
+                audio.stream,
                 after=lambda e: print(f"Player error: {e}") if e else None,
             )
-            await interaction.followup.send(f"Now playing: {song}")
 
-    await voice_client.disconnect(force=False)
+            embed = ui.embed_song(audio, title_prefix="Now Playing: ")
+            embed.add_field(name="Requested By", value=interaction.user.mention)
+            embed.add_field(name="Voice Channel", value=channel.mention)
+            await interaction.followup.send(embed=embed)
 
 
 @tree.command(description="Skips the current song in the queue")
@@ -104,7 +112,12 @@ async def skip(interaction: Interaction) -> None:
 
     voice_client.stop()
     await interaction.response.defer()
-    await interaction.followup.send("Skipped the current song.")
+
+    # TODO: maybe say what the current song is?
+    # or at least reply to the relevant "Now Playing" message
+    await interaction.followup.send(
+        embed=discord.Embed(title="Skipped the Current Song", color=ui.BLUE),
+    )
 
 
 @tree.command(description="Stops playing music")
@@ -127,4 +140,6 @@ async def stop(interaction: Interaction) -> None:
 
     await interaction.response.defer()
     await guild.voice_client.disconnect(force=False)
-    await interaction.followup.send("Stopped playing music.")
+    await interaction.followup.send(
+        embed=discord.Embed(title="Stopped Playing Music", color=ui.BLUE),
+    )
