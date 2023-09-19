@@ -71,6 +71,8 @@ async def play(interaction: Interaction, song: str) -> None:
             )
             await interaction.followup.send(f"Now playing: {song}")
 
+    await voice_client.disconnect(force=False)
+
 
 @tree.command(description="Skips the current song in the queue")
 async def skip(interaction: Interaction) -> None:
