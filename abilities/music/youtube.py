@@ -75,7 +75,7 @@ class Song:
     def url(self) -> str:
         return f"https://www.youtube.com/watch?v={self.id}"
 
-    async def preload(self):
+    async def preload(self) -> None:
         """
         Simply waits until first packet of the song is available.
         """
