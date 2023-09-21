@@ -19,7 +19,8 @@ class OpusAudioSource(discord.AudioSource):
     def read(self) -> bytes:
         return next(self.packets_iterator, b"")
 
-    def is_opus(self) -> bool:
+    @staticmethod
+    def is_opus() -> bool:
         return True
 
 
