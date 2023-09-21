@@ -111,5 +111,4 @@ def fetch_synchronously(song: str) -> Song:
 
 
 async def fetch(song: str) -> Song:
-    x = await asyncio.to_thread(fetch_synchronously, song)
-    return x
+    return await asyncio.to_thread(fetch_synchronously, song)
