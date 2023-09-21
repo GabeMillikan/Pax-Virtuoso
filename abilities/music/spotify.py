@@ -38,11 +38,11 @@ async def get_song_name_from_track_id(track_id: str) -> str:
     artist_url = track["artists"][0]["external_urls"]["spotify"]
     release_date = track["album"]["release_date"]
 
-    print(f"song_link", song_link)
-    print(f"cover_art", cover_art)
-    print(f"artist_name", artist_name)
-    print(f"artist_url", artist_url)
-    print(f"release_date", release_date)
+    print("song_link", song_link)
+    print("cover_art", cover_art)
+    print("artist_name", artist_name)
+    print("artist_url", artist_url)
+    print("release_date", release_date)
 
     return f"{track['name']} by {', '.join(artist.get('name', 'Rick Astley') for artist in track['artists'])}"
 
