@@ -44,7 +44,7 @@ async def get_song_name_from_track_id(track_id: str) -> str:
     print(f"artist_url", artist_url)
     print(f"release_date", release_date)
 
-    return f"{track['name']} by, {', '.join(artist.get('name', 'Rick Astley') for artist in track['artists'])}"
+    return f"{track['name']} by {', '.join(artist.get('name', 'Rick Astley') for artist in track['artists'])}"
 
 
 async def get_song_name(song: str) -> str:
@@ -61,5 +61,5 @@ if __name__ == "__main__":
 
     assert (
         search_term
-        == "Sweet Dreams (Are Made of This) - Remastered by, Eurythmics, Annie Lennox, Dave Stewart"
+        == "Sweet Dreams (Are Made of This) - Remastered by Eurythmics, Annie Lennox, Dave Stewart"
     )
