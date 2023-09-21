@@ -13,6 +13,10 @@ from . import youtube
 from .common import Song as BaseSong
 
 
+class InvalidTrack(Exception):
+    pass
+
+
 @dataclass
 class SpotifyTrackMetadata:
     youtube_search_term: str
@@ -51,20 +55,32 @@ def extract_track_id(song: str) -> str | None:
 
 
 async def get_song_name_from_track_id(track_id: str) -> SpotifyTrackMetadata:
-    track = await asyncio.to_thread(spotify_client.track, track_id)
+    try:
+        track = await asyncio.to_thread(spotify_client.track, track_id)
+    except Exception as e:
+        raise InvalidTrack(f"Spotify raised API error. {e!r}")
+
     if not track or "name" not in track or "artists" not in track:
         msg = "Invalid Track ID"
-        raise Exception(msg)
+        raise InvalidTrack(msg)
 
-    song_link = track["external_urls"]["spotify"]
-    cover_art = max(track["album"]["images"], key=lambda img: img["height"])["url"]
-    artist_name = track["artists"][0]["name"]
-    artist_url = track["artists"][0]["external_urls"]["spotify"]
-    release_date = track["album"]["release_date"]
+    try:
+        title = track["name"]
+        song_link = track["external_urls"]["spotify"]
+        cover_art = max(track["album"]["images"], key=lambda img: img["height"])["url"]
+        artist_name = track["artists"][0]["name"]
+        artist_url = track["artists"][0]["external_urls"]["spotify"]
+        release_date = track["album"]["release_date"]
+    except Exception as e:
+        raise InvalidTrack(f"Track returned unexpected JSON structure. {e!r}")
+
+    artist_names = ", ".join(
+        artist["name"] for artist in track["artists"] if "name" in artist
+    )
 
     return SpotifyTrackMetadata(
-        youtube_search_term=f"{track['name']} by {', '.join(artist.get('name', 'Rick Astley') for artist in track['artists'])}",
-        title=track["name"],
+        youtube_search_term=f"{title} by {artist_names}",
+        title=title,
         track_id=track_id,
         url=song_link,
         image_url=cover_art,
@@ -80,7 +96,15 @@ async def get_song_name_from_track_id(track_id: str) -> SpotifyTrackMetadata:
 
 async def get_song_name(song: str) -> SpotifyTrackMetadata:
     result = spotify_client.search(song)
-    return await get_song_name_from_track_id(result["tracks"]["items"][0]["id"])
+    if not result:
+        raise InvalidTrack("Spotify API did not return any results.")
+
+    try:
+        track_id = result["tracks"]["items"][0]["id"]
+    except:
+        raise InvalidTrack("Search returned unexpected JSON structure.")
+
+    return await get_song_name_from_track_id(track_id)
 
 
 async def fetch(song: str) -> Song:
@@ -101,17 +125,4 @@ async def fetch(song: str) -> Song:
         duration=youtube_song.duration,
         released_at=meta.released_at,
         stream=youtube_song.stream,
-    )
-
-
-if __name__ == "__main__":
-    url = "https://open.spotify.com/track/1TfqLAPs4K3s2rJMoCokcS?si=4e23cbac90054e6e"
-    track_id = extract_track_id(url)
-
-    assert track_id == "1TfqLAPs4K3s2rJMoCokcS"
-    search_term = asyncio.run(get_song_name_from_track_id(track_id))
-
-    assert (
-        search_term
-        == "Sweet Dreams (Are Made of This) - Remastered by Eurythmics, Annie Lennox, Dave Stewart"
     )
