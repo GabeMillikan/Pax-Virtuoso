@@ -54,6 +54,8 @@ mutagen==1.47.0
     # via yt-dlp
 mypy-extensions==1.0.0
     # via black
+opuslib==3.0.1
+    # via -r requirements.in
 packaging==23.1
     # via
     #   black
