@@ -51,21 +51,16 @@ async def play(interaction: Interaction, song: str, platform: str = "spotify") -
     await interaction.response.defer()
 
     if platform == "youtube" or ("youtube.com" in song or "youtu.be" in song):
-        print("begin fetch with youtube")
         audio = await youtube.fetch(song)
     else:
-        print("begin fetch with spotify")
         audio = await spotify.fetch(song)
-    print("fetch completed, now preloading", audio)
     await audio.preload()
-    print("preloaded")
 
     if isinstance(guild.voice_client, discord.VoiceClient):
         voice_client = guild.voice_client
         await voice_client.move_to(channel)
     else:
         voice_client = await channel.connect()
-    print("joined channel")
 
     if not voice_client.is_playing():
         voice_client.play(

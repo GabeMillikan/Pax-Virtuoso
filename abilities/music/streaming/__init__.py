@@ -1,1 +1,1 @@
-from . import common, spotify, youtube
+from . import common, spotify, youtube  # noqa

@@ -7,9 +7,8 @@ from datetime import datetime, timezone
 from math import ceil
 from typing import Callable, TypeVar
 
-from .common import BufferedOpusAudioSource
+from .common import BufferedOpusAudioSource, transmux_to_ogg_opus
 from .common import Song as BaseSong
-from .common import transmux_to_ogg_opus
 
 
 @dataclass
@@ -32,7 +31,6 @@ def convert(data: D, converter: Callable[[D], T], default: T) -> T:
 
 
 def fetch_synchronously(song: str) -> Song:
-    print("inside fetch_synchronously")
     """
     Assumes that `yt-dlp` and `ffmpeg` are installed on your PATH.
     """
@@ -73,14 +71,11 @@ def fetch_synchronously(song: str) -> Song:
         stderr=subprocess.PIPE,
         bufsize=-1,
     )
-    print("created download_process")
     assert download_process.stdout
     assert download_process.stderr
     printed_info_stream = download_process.stderr
-    print("streams are working")
 
     encoded_audio_stream = transmux_to_ogg_opus(download_process.stdout)
-    print("transmux_to_ogg_opus returned")
 
     (
         video_id,
@@ -93,7 +88,6 @@ def fetch_synchronously(song: str) -> Song:
         channel_url,
         channel_follower_count,
     ) = (printed_info_stream.readline().decode().strip() for _ in range(9))
-    print("yt-dlp output produced")
 
     return Song(
         artist=uploader,
@@ -117,7 +111,5 @@ def fetch_synchronously(song: str) -> Song:
 
 
 async def fetch(song: str) -> Song:
-    print("before fetch_synchronously")
     x = await asyncio.to_thread(fetch_synchronously, song)
-    print("after fetch_synchronously")
     return x

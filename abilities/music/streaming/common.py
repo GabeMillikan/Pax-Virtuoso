@@ -83,7 +83,7 @@ class Song:
     duration: int  # seconds
     stream: BufferedOpusAudioSource
 
-    async def preload(self) -> None:
+    async def preload(self: Song) -> None:
         """
         Simply waits until first packet of the song is available.
         """

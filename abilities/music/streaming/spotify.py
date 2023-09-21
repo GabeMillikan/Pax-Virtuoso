@@ -88,7 +88,6 @@ async def fetch(song: str) -> Song:
         meta = await get_song_name_from_track_id(track_id)
     else:
         meta = await get_song_name(song)
-    print(meta)
 
     youtube_song = await youtube.fetch(meta.youtube_search_term)
     return Song(
