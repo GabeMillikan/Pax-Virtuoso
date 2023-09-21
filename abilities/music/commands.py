@@ -7,14 +7,14 @@ from discord import Interaction, app_commands
 
 from bot import tree
 
-from . import ui, youtube
+from . import spotify, ui, youtube
 
 
 @tree.command(description="Plays a song")
-@app_commands.describe(song="The URL or name of a YouTube video.")
+@app_commands.describe(song="The URL or name of a song from YouTube or Spotify.")
 async def play(interaction: Interaction, song: str) -> None:
     """
-    Plays a song from YouTube.
+    Plays a song from YouTube or Spotify.
     """
     queue = asyncio.Queue()
     guild = interaction.guild
@@ -42,6 +42,9 @@ async def play(interaction: Interaction, song: str) -> None:
         return
 
     await interaction.response.defer()
+
+    if spotify_track_id := spotify.extract_track_id(song):
+        song = await spotify.get_youtube_search_term(spotify_track_id)
 
     audio = await youtube.fetch(song)
     await audio.preload()

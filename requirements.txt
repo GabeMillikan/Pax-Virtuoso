@@ -19,11 +19,15 @@ brotli==1.1.0
 build==1.0.3
     # via pip-tools
 certifi==2023.7.22
-    # via yt-dlp
+    # via
+    #   requests
+    #   yt-dlp
 cffi==1.15.1
     # via pynacl
 charset-normalizer==3.2.0
-    # via aiohttp
+    # via
+    #   aiohttp
+    #   requests
 click==8.1.7
     # via
     #   black
@@ -39,7 +43,9 @@ frozenlist==1.4.0
     #   aiohttp
     #   aiosignal
 idna==3.4
-    # via yarl
+    # via
+    #   requests
+    #   yarl
 multidict==6.0.4
     # via
     #   aiohttp
@@ -68,6 +74,18 @@ pyproject-hooks==1.0.0
     # via build
 python-dotenv==1.0.0
     # via -r requirements.in
+redis==5.0.0
+    # via spotipy
+requests==2.31.0
+    # via spotipy
+six==1.16.0
+    # via spotipy
+spotipy==2.23.0
+    # via -r requirements.in
+urllib3==2.0.5
+    # via
+    #   requests
+    #   spotipy
 websockets==11.0.3
     # via yt-dlp
 wheel==0.41.2
