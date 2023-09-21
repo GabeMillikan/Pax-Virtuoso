@@ -1,18 +1,18 @@
-import random
+# import random
 
-from abilities.music.youtube import *
+# from abilities.music.youtube import *
 
-song = asyncio.run(fetch("anti up chromatic"))
+# song = asyncio.run(fetch("anti up chromatic"))
 
-bytes_produces = 0
-packet_count = 0
-while packet := song.stream.read():
-    packet_count += 1
-    bytes_produces += len(packet)
+# bytes_produces = 0
+# packet_count = 0
+# while packet := song.stream.read():
+#     packet_count += 1
+#     bytes_produces += len(packet)
 
-    song.stream.volume = random.random() + 0.5
+#     song.stream.volume = random.random() + 0.5
 
-print("Data size:", bytes_produces, "bytes across", packet_count, "packets")
+# print("Data size:", bytes_produces, "bytes across", packet_count, "packets")
 
 # from opuslib import Decoder
 
@@ -35,18 +35,21 @@ print("Data size:", bytes_produces, "bytes across", packet_count, "packets")
 # d = Decoder(SAMPLE_RATE, CHANNELS)
 # d.decode(p, SAMPLES_PER_CHANNEL_FRAME)
 
-# from opuslib import Decoder
+from opuslib import Decoder
 
-# SAMPLE_RATE = 48000  # hertz
-# FRAME_DURATION = 20  # milliseconds
-# FRAMES_PER_SECOND = 1000 // FRAME_DURATION
-# SAMPLES_PER_FRAME = SAMPLE_RATE // FRAMES_PER_SECOND
-# CHANNELS = 2
-# SAMPLES_PER_CHANNEL_FRAME = SAMPLES_PER_FRAME // CHANNELS
+SAMPLE_RATE = 48000  # hertz
+FRAME_DURATION = 20  # milliseconds
+FRAMES_PER_SECOND = 1000 // FRAME_DURATION
+SAMPLES_PER_FRAME = SAMPLE_RATE // FRAMES_PER_SECOND
+CHANNELS = 2
+SAMPLES_PER_CHANNEL_FRAME = SAMPLES_PER_FRAME // CHANNELS
 
-# packet = bytes.fromhex("4F 70 75 73 48 65 61 64 01 02 38 01 80 BB 00 00 00 00 00")
 
-# decoder = Decoder(SAMPLE_RATE, CHANNELS)
-# result = decoder.decode(packet, SAMPLES_PER_CHANNEL_FRAME)
+packet = bytes.fromhex(
+    "FC 7F BC 0E BF E0 18 6C 00 B0 F9 1C A0 B6 47 E3 A3 3D 18 B3 F8 0B 01 32 BC 72 BE C0 05 7D DB 1C 83 8C 75 58 82 67 24 C9 71 B5 46 14 92 29 D7 B6 2B A4 59 B4 85 F5 E5 E2 A9 45 AD 07 80 26 0F D1 14 14 5B AA 25 FD CD C1 0D D8 8F 34 6A 84 61 32 35 84 90 3C 28 26 AA 38 17 C0 80 1C BD 4C FC E5 DA 19 65 C7 15 C0 1E 0B F4 CE 58 C7 67 5E 6A F2 9D EB 1B 25 15 3A D3 80 57 EE B2 13 DC 2E 0A 1C 72 0C 4F 74 D6 F2 D3 CD 76 45 83 8D 07 19 B9 6A 31 0C D0 AE 9C 82 B8 0A 28 6D FF D1 C0 7D 38 AF CB 87 EF 0F 76 4A 77 D7 0C 0A 1C 8A 82 60 B9 D4 FD 60 59 BC 83 04 8A D8 BC 33 D3 39 FE 33 3B 3E 58 36 2C F9 69 CC 12 D4 E3 12 7E DF 33 01 25 CC C7 53 88 4F 31 5F 24 9F CC A0 60 42 39 79 F0 7C D0 DD 3B 00 00 00 00 00 00 00 00 4B C7 33 6B 3A 97 DA 14 93 D8 65 9C B5 70 FA 07 07 F4 6E 17 05 BA A6 9B FF F9 1E 1E 69 D9 18 C6 0A 2A 60 0B FB 89 BE 4A 0E E5 CB C5 68 52 BE F3 A7 05 D3 C9 2B A7 91 60 17 32 56 13 B5 C6 E6 69 00 44 21 82 18 0D 81 B8 7E 19 C1 21 7E 5D B9 F0 C0 34 47 50 AE 41 0F FB 8B C0 1F F4 A8 3C E7 60 87 50 71 63 55 CB E6 08 A7 DB 27 43 1F EE 8E 36 A8 57 A1 5F 7A 7B 63 CB CD F8 AF 8C FD A3 3D 80 40 AC AA 6A 29 3B 56 10 81 1A 70 F0 1D 73 79 A4 43 6C A6 A3 6B 42 DB AB EB 93 92 AA 8C 10 D8 90 F2 9B 01 F0 22 F2 D9 D5 14 5B 72 79 EB BC 9F C3 36 BF 9F 23 AF 93 D9 DD C1 B2 C7 40 06 29 43 54 16 92 94 9F 82 B5 41 FF 05 7D 59 41 AC 2A CA E6 69 04 B0 3F D8 5E 42 B1 92 F8 CB DA 35 36 41 D4 A8 E4 99 C9 FE BE C0 "
+)
 
-# print(result)
+decoder = Decoder(SAMPLE_RATE, CHANNELS)
+result = decoder.decode(packet, frame_size=SAMPLES_PER_FRAME)
+
+print(result)
