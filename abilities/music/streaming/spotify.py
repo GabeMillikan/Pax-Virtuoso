@@ -4,7 +4,6 @@ import asyncio
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from math import ceil
 
 from spotipy import MemoryCacheHandler, Spotify, SpotifyClientCredentials
 
