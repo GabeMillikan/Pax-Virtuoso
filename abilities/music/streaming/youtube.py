@@ -92,7 +92,7 @@ def fetch_synchronously(song: str) -> Song:
         uploader,
         channel_url,
         channel_follower_count,
-    ) = (printed_info_stream.readline().decode().strip() for _ in range(10))
+    ) = (printed_info_stream.readline().decode().strip() for _ in range(9))
     print("yt-dlp output produced")
 
     return Song(
