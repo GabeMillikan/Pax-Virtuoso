@@ -1,19 +1,27 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import discord
 
-from .youtube import Song
+from .streaming.youtube import Song as YoutubeSong
 
-GREEN = 0x8EC356
+if TYPE_CHECKING:
+    from .streaming.spotify import Song as SpotifySong
+
 BLUE = 0x51A8DB
 
 
-def embed_song(song: Song, title_prefix: str = "Now Playing: ") -> discord.Embed:
-    e = discord.Embed(title=f"{title_prefix}{song.title}", url=song.url, color=GREEN)
-    e.set_thumbnail(url=song.thumbnail_url)
-
-    e.add_field(
-        name="Channel",
-        value=f"[{song.uploader.nickname}]({song.uploader.url})\n{song.uploader.subscribers:,} Subscribers",
+def embed_song(
+    song: YoutubeSong | SpotifySong,
+    title_prefix: str = "Now Playing: ",
+) -> discord.Embed:
+    e = discord.Embed(
+        title=f"{title_prefix}{song.title}",
+        url=song.url,
+        color=song.platform_color,
     )
+    e.set_thumbnail(url=song.image_url)
 
     e.add_field(
         name="Duration",
@@ -24,10 +32,31 @@ def embed_song(song: Song, title_prefix: str = "Now Playing: ") -> discord.Embed
         ),
     )
 
-    e.add_field(name="Views", value=f"{song.view_count:,}")
+    if isinstance(song, YoutubeSong):
+        e.insert_field_at(
+            index=0,
+            name="Channel",
+            value=f"[{song.artist}]({song.artist_url})\n{song.subscribers:,} Subscribers",
+        )
 
-    e.add_field(
-        name="Upload Date",
-        value=f"<t:{song.timestamp}:D> (<t:{song.timestamp}:R>)",
-    )
+        e.add_field(name="Views", value=f"{song.view_count:,}")
+
+        e.add_field(
+            name="Upload Date",
+            value=f"<t:{song.uploaded_at}:D> (<t:{song.uploaded_at}:R>)",
+        )
+    else:
+        e.insert_field_at(
+            index=0,
+            name="Artist",
+            value=f"[{song.artist}]({song.artist_url})",
+        )
+
+        e.add_field(name="Youtube", value=f"[link]({song.youtube_song.url})")
+
+        e.add_field(
+            name="Release Date",
+            value=f"<t:{song.released_at}:D> (<t:{song.released_at}:R>)",
+        )
+
     return e

@@ -13,3 +13,5 @@ def getenv_string(environment_variable: str) -> str:
 
 
 api_token = getenv_string("API_TOKEN")
+spotify_client_id = getenv_string("SPOTIFY_CLIENT_ID")
+spotify_client_secret = getenv_string("SPOTIFY_CLIENT_SECRET")
