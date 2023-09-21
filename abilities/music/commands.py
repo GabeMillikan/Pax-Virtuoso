@@ -12,7 +12,13 @@ from . import spotify, ui, youtube
 
 @tree.command(description="Plays a song")
 @app_commands.describe(song="The URL or name of a song from YouTube or Spotify.")
-async def play(interaction: Interaction, song: str) -> None:
+@app_commands.choices(
+    platform=[
+        app_commands.Choice(name="YouTube", value="youtube"),
+        app_commands.Choice(name="Spotify", value="spotify"),
+    ],
+)
+async def play(interaction: Interaction, song: str, platform: str = "spotify") -> None:
     """
     Plays a song from YouTube or Spotify.
     """
@@ -43,8 +49,12 @@ async def play(interaction: Interaction, song: str) -> None:
 
     await interaction.response.defer()
 
-    if spotify_track_id := spotify.extract_track_id(song):
-        song = await spotify.get_youtube_search_term(spotify_track_id)
+    use_youtube = platform == "youtube" or ("youtube.com" in song or "youtu.be" in song)
+    if not use_youtube:
+        if spotify_track_id := spotify.extract_track_id(song):
+            song = await spotify.get_song_name_from_track_id(spotify_track_id)
+        else:
+            song = await spotify.get_song_name(song)
 
     audio = await youtube.fetch(song)
     await audio.preload()
