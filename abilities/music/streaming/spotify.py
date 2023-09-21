@@ -58,7 +58,8 @@ async def get_song_name_from_track_id(track_id: str) -> SpotifyTrackMetadata:
     try:
         track = await asyncio.to_thread(spotify_client.track, track_id)
     except Exception as e:
-        raise InvalidTrack(f"Spotify raised API error. {e!r}")
+        msg = f"Spotify raised API error. {e!r}"
+        raise InvalidTrack(msg) from e
 
     if not track or "name" not in track or "artists" not in track:
         msg = "Invalid Track ID"
@@ -72,7 +73,8 @@ async def get_song_name_from_track_id(track_id: str) -> SpotifyTrackMetadata:
         artist_url = track["artists"][0]["external_urls"]["spotify"]
         release_date = track["album"]["release_date"]
     except Exception as e:
-        raise InvalidTrack(f"Track returned unexpected JSON structure. {e!r}")
+        msg = "Track returned unexpected JSON structure."
+        raise InvalidTrack(msg) from e
 
     artist_names = ", ".join(
         artist["name"] for artist in track["artists"] if "name" in artist
@@ -97,12 +99,14 @@ async def get_song_name_from_track_id(track_id: str) -> SpotifyTrackMetadata:
 async def get_song_name(song: str) -> SpotifyTrackMetadata:
     result = spotify_client.search(song)
     if not result:
-        raise InvalidTrack("Spotify API did not return any results.")
+        msg = "Spotify API did not return any results."
+        raise InvalidTrack(msg)
 
     try:
         track_id = result["tracks"]["items"][0]["id"]
-    except:
-        raise InvalidTrack("Search returned unexpected JSON structure.")
+    except Exception:
+        msg = "Search returned unexpected JSON structure."
+        raise InvalidTrack(msg) from None
 
     return await get_song_name_from_track_id(track_id)
 
