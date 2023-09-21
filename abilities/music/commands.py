@@ -7,7 +7,8 @@ from discord import Interaction, app_commands
 
 from bot import tree
 
-from . import spotify, ui, youtube
+from . import ui
+from .streaming import spotify, youtube
 
 
 @tree.command(description="Plays a song")
@@ -49,21 +50,22 @@ async def play(interaction: Interaction, song: str, platform: str = "spotify") -
 
     await interaction.response.defer()
 
-    use_youtube = platform == "youtube" or ("youtube.com" in song or "youtu.be" in song)
-    if not use_youtube:
-        if spotify_track_id := spotify.extract_track_id(song):
-            song = await spotify.get_song_name_from_track_id(spotify_track_id)
-        else:
-            song = await spotify.get_song_name(song)
-
-    audio = await youtube.fetch(song)
+    if platform == "youtube" or ("youtube.com" in song or "youtu.be" in song):
+        print("begin fetch with youtube")
+        audio = await youtube.fetch(song)
+    else:
+        print("begin fetch with spotify")
+        audio = await spotify.fetch(song)
+    print("fetch completed, now preloading", audio)
     await audio.preload()
+    print("preloaded")
 
     if isinstance(guild.voice_client, discord.VoiceClient):
         voice_client = guild.voice_client
         await voice_client.move_to(channel)
     else:
         voice_client = await channel.connect()
+    print("joined channel")
 
     if not voice_client.is_playing():
         voice_client.play(
