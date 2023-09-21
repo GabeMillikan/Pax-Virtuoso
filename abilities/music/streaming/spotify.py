@@ -23,14 +23,16 @@ class SpotifyTrackMetadata:
     image_url: str
     artist_name: str
     artist_url: str
-    duration: int  # seconds
     released_at: int  # unix timestamp
 
 
 @dataclass
 class Song(BaseSong):
+    youtube_song: youtube.Song
     track_id: str
     released_at: int  # unix timestamp
+
+    platform_color: int = 0x1DB954
 
 
 spotify_client = Spotify(
@@ -69,7 +71,6 @@ async def get_song_name_from_track_id(track_id: str) -> SpotifyTrackMetadata:
         image_url=cover_art,
         artist_name=artist_name,
         artist_url=artist_url,
-        duration=ceil(track["duration_ms"] / 1000),
         released_at=int(
             datetime.fromisoformat(release_date)
             .replace(tzinfo=timezone.utc)
@@ -91,13 +92,14 @@ async def fetch(song: str) -> Song:
 
     youtube_song = await youtube.fetch(meta.youtube_search_term)
     return Song(
+        youtube_song=youtube_song,
         track_id=meta.track_id,
         title=meta.title,
         artist=meta.artist_name,
         artist_url=meta.artist_url,
         url=meta.url,
         image_url=meta.image_url,
-        duration=meta.duration,
+        duration=youtube_song.duration,
         released_at=meta.released_at,
         stream=youtube_song.stream,
     )

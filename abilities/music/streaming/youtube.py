@@ -18,6 +18,8 @@ class Song(BaseSong):
     uploaded_at: int  # unix timestamp
     subscribers: int
 
+    platform_color: int = 0xFF0000
+
 
 T = TypeVar("T")
 D = TypeVar("D")
