@@ -14,7 +14,7 @@ while packet := song.stream.read():
 
 print("Data size:", bytes_produces, "bytes across", packet_count, "packets")
 
-from opuslib import Decoder
+# from opuslib import Decoder
 
 # p = bytes.fromhex(
 #     "4F 70 75 73 48 65 61 64 01 02 38 01 80 BB 00 00 00 00 00 "
