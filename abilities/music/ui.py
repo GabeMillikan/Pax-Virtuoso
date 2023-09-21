@@ -1,14 +1,9 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import discord
 
+from .streaming.spotify import Song as SpotifySong
 from .streaming.youtube import Song as YoutubeSong
 
-if TYPE_CHECKING:
-    from .streaming.spotify import Song as SpotifySong
-
+GREEN = 0x8EC356
 BLUE = 0x51A8DB
 
 
@@ -16,11 +11,7 @@ def embed_song(
     song: YoutubeSong | SpotifySong,
     title_prefix: str = "Now Playing: ",
 ) -> discord.Embed:
-    e = discord.Embed(
-        title=f"{title_prefix}{song.title}",
-        url=song.url,
-        color=song.platform_color,
-    )
+    e = discord.Embed(title=f"{title_prefix}{song.title}", url=song.url, color=GREEN)
     e.set_thumbnail(url=song.image_url)
 
     e.add_field(
@@ -51,8 +42,6 @@ def embed_song(
             name="Artist",
             value=f"[{song.artist}]({song.artist_url})",
         )
-
-        e.add_field(name="Youtube", value=f"[link]({song.youtube_song.url})")
 
         e.add_field(
             name="Release Date",
