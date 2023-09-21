@@ -23,12 +23,33 @@ def extract_track_id(song: str) -> str | None:
     return result.group(1) if result else None
 
 
-async def get_youtube_search_term(track_id: str) -> str:
+async def get_song_name_from_track_id(track_id: str) -> str:
     track = await asyncio.to_thread(sp.track, track_id)
     if not track or "name" not in track or "artists" not in track:
         return "Never Gonna Give You Up by Rick Astley"
 
+    import json
+
+    print(json.dumps(track, indent=2))
+
+    song_link = track["external_urls"]["spotify"]
+    cover_art = max(track["album"]["images"], key=lambda img: img["height"])["url"]
+    artist_name = track["artists"][0]["name"]
+    artist_url = track["artists"][0]["external_urls"]["spotify"]
+    release_date = track["album"]["release_date"]
+
+    print(f"song_link", song_link)
+    print(f"cover_art", cover_art)
+    print(f"artist_name", artist_name)
+    print(f"artist_url", artist_url)
+    print(f"release_date", release_date)
+
     return f"{track['name']} by, {', '.join(artist.get('name', 'Rick Astley') for artist in track['artists'])}"
+
+
+async def get_song_name(song: str) -> str:
+    result = sp.search(song)
+    return await get_song_name_from_track_id(result["tracks"]["items"][0]["id"])
 
 
 if __name__ == "__main__":
@@ -36,7 +57,7 @@ if __name__ == "__main__":
     track_id = extract_track_id(url)
 
     assert track_id == "1TfqLAPs4K3s2rJMoCokcS"
-    search_term = asyncio.run(get_youtube_search_term(track_id))
+    search_term = asyncio.run(get_song_name_from_track_id(track_id))
 
     assert (
         search_term
