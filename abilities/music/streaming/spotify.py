@@ -4,7 +4,9 @@ import asyncio
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import ClassVar
 
+from cachetools import TTLCache
 from spotipy import MemoryCacheHandler, Spotify, SpotifyClientCredentials
 
 from config import spotify_client_id, spotify_client_secret
@@ -19,6 +21,8 @@ class InvalidTrack(Exception):
 
 @dataclass
 class SpotifyTrackMetadata:
+    cache: ClassVar[TTLCache] = TTLCache(100, 15 * 60)  # 100 songs for up to 15 minutes
+
     youtube_search_term: str
     title: str
     track_id: str
@@ -27,6 +31,57 @@ class SpotifyTrackMetadata:
     artist_name: str
     artist_url: str
     released_at: int  # unix timestamp
+
+    @classmethod
+    def from_track_dict(
+        cls: type[SpotifyTrackMetadata],
+        track_dict: dict,
+    ) -> SpotifyTrackMetadata:
+        try:
+            track_id = track_dict["id"]
+            title = track_dict["name"]
+            song_link = track_dict["external_urls"]["spotify"]
+            cover_art = max(
+                track_dict["album"]["images"],
+                key=lambda img: img["height"],
+            )["url"]
+            artist_name = track_dict["artists"][0]["name"]
+            artist_url = track_dict["artists"][0]["external_urls"]["spotify"]
+            release_date = track_dict["album"]["release_date"]
+
+            artist_names = [artist["name"] for artist in track_dict["artists"]]
+        except KeyError as e:
+            msg = "Track was in an unexpected format."
+            raise InvalidTrack(msg) from e
+
+        if len(artist_names) <= 2:
+            # by {A}
+            # by {A} and {B}
+            joined_artist_names = " and ".join(artist_names)
+        else:
+            # by {A}, {B}, and {C}
+            artist_names[-1] = f"and {artist_names[-1]}"
+            joined_artist_names = ", ".join(artist_names)
+
+        track = cls(
+            youtube_search_term=f'"{title}" by {joined_artist_names}',
+            title=title,
+            track_id=track_id,
+            url=song_link,
+            image_url=cover_art,
+            artist_name=artist_name,
+            artist_url=artist_url,
+            released_at=int(
+                datetime.fromisoformat(
+                    release_date if "-" in release_date else f"{release_date}-01-01",
+                )
+                .replace(tzinfo=timezone.utc)
+                .timestamp(),
+            ),
+        )
+
+        cls.cache[track_id] = track
+        return track
 
 
 @dataclass
@@ -54,68 +109,67 @@ def extract_track_id(song: str) -> str | None:
     return result.group(1) if result else None
 
 
-async def get_song_name_from_track_id(track_id: str) -> SpotifyTrackMetadata:
+async def search(query: str) -> list[SpotifyTrackMetadata]:
+    """
+    Returns a dictionary mapping matched track IDs to f"{track title} by {track author(s)}"
+    """
+    result = await asyncio.to_thread(spotify_client.search, query)
+    if not result or "tracks" not in result or "items" not in result["tracks"]:
+        return []
+
+    tracks = [
+        SpotifyTrackMetadata.from_track_dict(track_dict)
+        for track_dict in result["tracks"]["items"]
+    ]
+
+    # Remove duplicate search results (which appear surprisingly often??)
+    seen_youtube_search_terms = set()
+    seen_track_ids = set()
+    unique_tracks: list[SpotifyTrackMetadata] = []
+    for track in tracks:
+        if (
+            track.youtube_search_term not in seen_youtube_search_terms
+            and track.track_id not in seen_track_ids
+        ):
+            unique_tracks.append(track)
+
+        seen_youtube_search_terms.add(track.youtube_search_term)
+        seen_track_ids.add(track.track_id)
+
+    return unique_tracks
+
+
+async def get_metadata_by_track_id(track_id: str) -> SpotifyTrackMetadata:
+    if track := SpotifyTrackMetadata.cache.get(track_id):
+        return track
+
     try:
-        track = await asyncio.to_thread(spotify_client.track, track_id)
+        track_dict = await asyncio.to_thread(spotify_client.track, track_id)
     except Exception as e:
         msg = f"Spotify raised API error. {e!r}"
         raise InvalidTrack(msg) from e
 
-    if not track or "name" not in track or "artists" not in track:
-        msg = "Invalid Track ID"
+    if not track_dict:
+        msg = f"Invalid track ID {track_id}"
         raise InvalidTrack(msg)
 
-    try:
-        title = track["name"]
-        song_link = track["external_urls"]["spotify"]
-        cover_art = max(track["album"]["images"], key=lambda img: img["height"])["url"]
-        artist_name = track["artists"][0]["name"]
-        artist_url = track["artists"][0]["external_urls"]["spotify"]
-        release_date = track["album"]["release_date"]
-    except Exception as e:
-        msg = "Track returned unexpected JSON structure."
-        raise InvalidTrack(msg) from e
-
-    artist_names = ", ".join(
-        artist["name"] for artist in track["artists"] if "name" in artist
-    )
-
-    return SpotifyTrackMetadata(
-        youtube_search_term=f"{title} by {artist_names}",
-        title=title,
-        track_id=track_id,
-        url=song_link,
-        image_url=cover_art,
-        artist_name=artist_name,
-        artist_url=artist_url,
-        released_at=int(
-            datetime.fromisoformat(release_date)
-            .replace(tzinfo=timezone.utc)
-            .timestamp(),
-        ),
-    )
+    return SpotifyTrackMetadata.from_track_dict(track_dict)
 
 
-async def get_song_name(song: str) -> SpotifyTrackMetadata:
-    result = spotify_client.search(song)
-    if not result:
+async def get_metadata(query: str) -> SpotifyTrackMetadata:
+    tracks = await search(query)
+    if not tracks:
         msg = "Spotify API did not return any results."
         raise InvalidTrack(msg)
 
-    try:
-        track_id = result["tracks"]["items"][0]["id"]
-    except Exception:
-        msg = "Search returned unexpected JSON structure."
-        raise InvalidTrack(msg) from None
-
-    return await get_song_name_from_track_id(track_id)
+    return tracks[0]
 
 
 async def fetch(song: str) -> Song:
     if track_id := extract_track_id(song):
-        meta = await get_song_name_from_track_id(track_id)
+        meta = await get_metadata_by_track_id(track_id)
     else:
-        meta = await get_song_name(song)
+        meta = await get_metadata(song)
 
     youtube_song = await youtube.fetch(meta.youtube_search_term)
     return Song(
