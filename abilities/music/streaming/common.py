@@ -49,7 +49,10 @@ class BufferedOpusAudioSource(discord.AudioSource):
         else:
             return 25 * log(self.volume)
 
-    def translate_packet(self, packet: bytes) -> bytes:
+    def adjust_volume(self, segment: AudioSegment) -> AudioSegment:
+        return segment + self.db_gain
+
+    def postprocess_packet(self, packet: bytes) -> bytes:
         if packet.startswith((b"OpusHead", b"OpusTags")):
             return packet
 
@@ -62,7 +65,7 @@ class BufferedOpusAudioSource(discord.AudioSource):
             channels=OPUS_CHANNELS,
         )
 
-        segment += self.db_gain
+        segment = self.adjust_volume(segment)
 
         assert isinstance(segment._data, bytes)
         packet = self.encoder.encode(segment._data, OPUS_FRAME_SIZE)
@@ -75,7 +78,7 @@ class BufferedOpusAudioSource(discord.AudioSource):
             self.peeked_packet = None
         else:
             try:
-                packet = self.translate_packet(next(self.packets_iterator))
+                packet = self.postprocess_packet(next(self.packets_iterator))
             except StopIteration:
                 packet = b""
 
