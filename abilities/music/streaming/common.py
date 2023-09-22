@@ -7,9 +7,14 @@ from math import log
 from typing import IO
 
 import discord
-import opuslib
 from discord.oggparse import OggStream
 from pydub import AudioSegment
+
+try:
+    import opuslib
+except Exception:
+    msg = "`opuslib` failed to load. Did you install the Opus codec? Please see ./abilities/music/streaming/opus-binary/README.md"
+    raise Exception(msg)
 
 OPUS_APPLICATION = "audio"
 OPUS_FRAME_DURATION = 20  # milliseconds
