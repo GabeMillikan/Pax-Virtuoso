@@ -46,10 +46,7 @@ class BufferedOpusAudioSource(discord.AudioSource):
         Uses the same conversion as VLC:
         https://sound.stackexchange.com/a/48502
         """
-        if self.volume < 0.01:
-            return -float("inf")
-        else:
-            return 25 * log(self.volume)
+        return -float("inf") if self.volume < 0.01 else 25 * log(self.volume)
 
     def adjust_volume(
         self: BufferedOpusAudioSource,
