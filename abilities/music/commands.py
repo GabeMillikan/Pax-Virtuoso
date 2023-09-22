@@ -14,6 +14,24 @@ MAXIMUM_VOLUME = 150  # percent
 playback_volume = 1.0
 
 
+async def song_autocomplete(
+    interaction: discord.Interaction,  # noqa
+    current: str,
+) -> list[app_commands.Choice[str]]:
+    current = current.strip()
+    if not current:
+        return []
+
+    tracks = await spotify.search(current)
+    return [
+        app_commands.Choice(
+            name=track.youtube_search_term[:100],
+            value=track.url if len(track.url) < 100 else track.title[:100],
+        )
+        for track in tracks[:10]
+    ]
+
+
 @tree.command(description="Sets the volume")
 @app_commands.describe(volume="The volume to play at, such as '50' for half volume.")
 async def volume(interaction: Interaction, volume: float) -> None:
@@ -43,6 +61,9 @@ async def volume(interaction: Interaction, volume: float) -> None:
 
 @tree.command(description="Plays a song")
 @app_commands.describe(song="The URL or name of a song from YouTube or Spotify.")
+@app_commands.autocomplete(
+    song=song_autocomplete,
+)
 @app_commands.choices(
     platform=[
         app_commands.Choice(name="YouTube", value="youtube"),
