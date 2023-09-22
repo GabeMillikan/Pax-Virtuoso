@@ -15,7 +15,7 @@ playback_volume = 1.0
 
 
 async def song_autocomplete(
-    interaction: discord.Interaction,
+    interaction: discord.Interaction,  # noqa
     current: str,
 ) -> list[app_commands.Choice[str]]:
     current = current.strip()
