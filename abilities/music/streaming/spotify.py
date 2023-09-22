@@ -42,7 +42,8 @@ class SpotifyTrackMetadata:
             title = track_dict["name"]
             song_link = track_dict["external_urls"]["spotify"]
             cover_art = max(
-                track_dict["album"]["images"], key=lambda img: img["height"]
+                track_dict["album"]["images"],
+                key=lambda img: img["height"],
             )["url"]
             artist_name = track_dict["artists"][0]["name"]
             artist_url = track_dict["artists"][0]["external_urls"]["spotify"]
@@ -50,7 +51,8 @@ class SpotifyTrackMetadata:
 
             artist_names = [artist["name"] for artist in track_dict["artists"]]
         except Exception as e:
-            raise InvalidTrack("Track was in an unexpected format.") from e
+            msg = "Track was in an unexpected format."
+            raise InvalidTrack(msg) from e
 
         if len(artist_names) <= 2:
             # by {A}
@@ -71,7 +73,7 @@ class SpotifyTrackMetadata:
             artist_url=artist_url,
             released_at=int(
                 datetime.fromisoformat(
-                    release_date if "-" in release_date else f"{release_date}-01-01"
+                    release_date if "-" in release_date else f"{release_date}-01-01",
                 )
                 .replace(tzinfo=timezone.utc)
                 .timestamp(),
