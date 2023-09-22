@@ -4,7 +4,9 @@ import asyncio
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import ClassVar
 
+from cachetools import TTLCache
 from spotipy import MemoryCacheHandler, Spotify, SpotifyClientCredentials
 
 from config import spotify_client_id, spotify_client_secret
@@ -19,6 +21,8 @@ class InvalidTrack(Exception):
 
 @dataclass
 class SpotifyTrackMetadata:
+    cache: ClassVar[TTLCache] = TTLCache(100, 15 * 60)  # 100 songs for up to 15 minutes
+
     youtube_search_term: str
     title: str
     track_id: str
@@ -74,6 +78,7 @@ class SpotifyTrackMetadata:
             ),
         )
 
+        cls.cache[track_id] = track
         return track
 
 
@@ -133,6 +138,8 @@ async def search(query: str) -> list[SpotifyTrackMetadata]:
 
 
 async def get_metadata_by_track_id(track_id: str) -> SpotifyTrackMetadata:
+    if track := SpotifyTrackMetadata.cache.get(track_id):
+        return track
 
     try:
         track_dict = await asyncio.to_thread(spotify_client.track, track_id)
