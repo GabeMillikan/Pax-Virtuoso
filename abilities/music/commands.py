@@ -19,7 +19,8 @@ async def volume(interaction: Interaction, volume: float) -> None:
     global playback_volume
     if volume < 0:
         await interaction.response.send_message(
-            "Volume cannot be negative.", ephemeral=True
+            "Volume cannot be negative.",
+            ephemeral=True,
         )
         return
 
@@ -35,7 +36,7 @@ async def volume(interaction: Interaction, volume: float) -> None:
         embed=discord.Embed(
             title=f"Volume Set To {volume:.4g}%",
             color=ui.BLUE,
-        )
+        ),
     )
 
 

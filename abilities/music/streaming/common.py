@@ -12,9 +12,9 @@ from pydub import AudioSegment
 
 try:
     import opuslib
-except Exception:
+except Exception as e:
     msg = "`opuslib` failed to load. Did you install the Opus codec? Please see ./abilities/music/streaming/opus-binary/README.md"
-    raise Exception(msg)
+    raise Exception(msg) from e
 
 OPUS_APPLICATION = "audio"
 OPUS_FRAME_DURATION = 20  # milliseconds
@@ -32,12 +32,14 @@ class BufferedOpusAudioSource(discord.AudioSource):
 
         self.decoder = opuslib.Decoder(OPUS_SAMPLE_RATE, OPUS_CHANNELS)
         self.encoder = opuslib.Encoder(
-            OPUS_SAMPLE_RATE, OPUS_CHANNELS, OPUS_APPLICATION
+            OPUS_SAMPLE_RATE,
+            OPUS_CHANNELS,
+            OPUS_APPLICATION,
         )
         self.volume: float = 1.0
 
     @property
-    def db_gain(self) -> float:
+    def db_gain(self: BufferedOpusAudioSource) -> float:
         """
         Converts self.volume into a Decibel adjustment.
 
@@ -49,10 +51,13 @@ class BufferedOpusAudioSource(discord.AudioSource):
         else:
             return 25 * log(self.volume)
 
-    def adjust_volume(self, segment: AudioSegment) -> AudioSegment:
+    def adjust_volume(
+        self: BufferedOpusAudioSource,
+        segment: AudioSegment,
+    ) -> AudioSegment:
         return segment + self.db_gain
 
-    def postprocess_packet(self, packet: bytes) -> bytes:
+    def postprocess_packet(self: BufferedOpusAudioSource, packet: bytes) -> bytes:
         if packet.startswith((b"OpusHead", b"OpusTags")):
             return packet
 
@@ -68,9 +73,7 @@ class BufferedOpusAudioSource(discord.AudioSource):
         segment = self.adjust_volume(segment)
 
         assert isinstance(segment._data, bytes)
-        packet = self.encoder.encode(segment._data, OPUS_FRAME_SIZE)
-
-        return packet
+        return self.encoder.encode(segment._data, OPUS_FRAME_SIZE)
 
     def read(self: BufferedOpusAudioSource) -> bytes:
         if self.peeked_packet is not None:
