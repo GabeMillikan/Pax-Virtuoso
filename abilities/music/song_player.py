@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import asyncio
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 import discord
 
-from .streaming.common import Song
+if TYPE_CHECKING:
+    from .streaming.common import Song
 
 
 class SongPlayer:
@@ -18,16 +19,16 @@ class SongPlayer:
 
         return cls.song_player_by_guild[guild.id]
 
-    def __init__(self, guild: discord.Guild):
+    def __init__(self: SongPlayer, guild: discord.Guild) -> None:
         self.guild = guild
         self.songs: list[Song] = []
 
     @property
-    def currently_playing(self) -> Song | None:
+    def currently_playing(self: SongPlayer) -> Song | None:
         return self.songs[0] if self.songs else None
 
     @property
-    def voice_client(self) -> discord.VoiceClient | None:
+    def voice_client(self: SongPlayer) -> discord.VoiceClient | None:
         vc = self.guild.voice_client
 
         if vc is None:
@@ -38,7 +39,7 @@ class SongPlayer:
 
         return vc
 
-    def _play_recursively(self, voice_client: discord.VoiceClient):
+    def _play_recursively(self: SongPlayer, voice_client: discord.VoiceClient) -> None:
         if voice_client.is_playing():
             # The voice client _already_ has a recursive `after` callback
             # so we don't need to create another one.
@@ -57,7 +58,7 @@ class SongPlayer:
 
             voice_client = self.voice_client
 
-        def after(e: BaseException | None):
+        def after(e: BaseException | None) -> None:
             print(f"Error occurred in SongPlayer: {e!r}. Advancing to the next song.")
 
             # Remove the current song from the queue (since it's completed)
@@ -68,7 +69,12 @@ class SongPlayer:
 
         voice_client.play(self.currently_playing.stream, after=after)
 
-    async def play_or_queue(self, *, song: Song, channel: discord.VoiceChannel):
+    async def play_or_queue(
+        self: SongPlayer,
+        *,
+        song: Song,
+        channel: discord.VoiceChannel,
+    ) -> None:
         if channel.guild != self.guild:
             msg = f"You're using the wrong SongPlayer, partner. This SongPlayer is for guild {self.guild.id!r}, but that channel is in guild {channel.guild.id!r}."
             raise ValueError(msg)
@@ -84,7 +90,7 @@ class SongPlayer:
 
         self._play_recursively(self.voice_client)
 
-    async def skip_current_song(self):
+    async def skip_current_song(self: SongPlayer) -> None:
         if not self.songs:
             # there is nothing to skip...
             return
@@ -95,7 +101,7 @@ class SongPlayer:
         else:
             self.songs.pop(0)
 
-    async def stop(self):
+    async def stop(self: SongPlayer) -> None:
         # delete everything after the current song
         del self.songs[1:]
 
