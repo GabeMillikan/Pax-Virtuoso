@@ -50,7 +50,7 @@ class SpotifyTrackMetadata:
             release_date = track_dict["album"]["release_date"]
 
             artist_names = [artist["name"] for artist in track_dict["artists"]]
-        except Exception as e:
+        except KeyError as e:
             msg = "Track was in an unexpected format."
             raise InvalidTrack(msg) from e
 
