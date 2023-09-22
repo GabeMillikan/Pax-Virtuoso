@@ -27,7 +27,7 @@ class SpotifyTrackMetadata:
     title: str
     track_id: str
     url: str
-    image_url: str
+    image_url: str | None
     artist_name: str
     artist_url: str
     released_at: int  # unix timestamp
@@ -41,10 +41,14 @@ class SpotifyTrackMetadata:
             track_id = track_dict["id"]
             title = track_dict["name"]
             song_link = track_dict["external_urls"]["spotify"]
-            cover_art = max(
-                track_dict["album"]["images"],
-                key=lambda img: img["height"],
-            )["url"]
+            if track_dict["album"]["images"]:
+                cover_art = max(
+                    track_dict["album"]["images"],
+                    key=lambda img: img["height"],
+                )["url"]
+            else:
+                cover_art = None
+
             artist_name = track_dict["artists"][0]["name"]
             artist_url = track_dict["artists"][0]["external_urls"]["spotify"]
             release_date = track_dict["album"]["release_date"]
@@ -179,7 +183,7 @@ async def fetch(song: str) -> Song:
         artist=meta.artist_name,
         artist_url=meta.artist_url,
         url=meta.url,
-        image_url=meta.image_url,
+        image_url=meta.image_url or youtube_song.image_url,
         duration=youtube_song.duration,
         released_at=meta.released_at,
         stream=youtube_song.stream,
