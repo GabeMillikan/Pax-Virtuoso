@@ -10,6 +10,7 @@ from bot import tree
 from . import ui
 from .streaming import spotify, youtube
 
+MAXIMUM_VOLUME = 150  # percent
 playback_volume = 1.0
 
 
@@ -24,9 +25,9 @@ async def volume(interaction: Interaction, volume: float) -> None:
         )
         return
 
-    if volume > 150:
+    if volume > MAXIMUM_VOLUME:
         await interaction.response.send_message(
-            f"Maximum acceptable volume is 150% (you entered {volume:.0f}%).",
+            f"Maximum acceptable volume is {MAXIMUM_VOLUME}% (you entered {volume:.0f}%).",
             ephemeral=True,
         )
         return
