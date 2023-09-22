@@ -10,6 +10,36 @@ from bot import tree
 from . import ui
 from .streaming import spotify, youtube
 
+MAXIMUM_VOLUME = 150  # percent
+playback_volume = 1.0
+
+
+@tree.command(description="Sets the volume")
+@app_commands.describe(volume="The volume to play at, such as '50' for half volume.")
+async def volume(interaction: Interaction, volume: float) -> None:
+    global playback_volume
+    if volume < 0:
+        await interaction.response.send_message(
+            "Volume cannot be negative.",
+            ephemeral=True,
+        )
+        return
+
+    if volume > MAXIMUM_VOLUME:
+        await interaction.response.send_message(
+            f"Maximum acceptable volume is {MAXIMUM_VOLUME}% (you entered {volume:.0f}%).",
+            ephemeral=True,
+        )
+        return
+
+    playback_volume = volume / 100
+    await interaction.response.send_message(
+        embed=discord.Embed(
+            title=f"Volume Set To {volume:.4g}%",
+            color=ui.BLUE,
+        ),
+    )
+
 
 @tree.command(description="Plays a song")
 @app_commands.describe(song="The URL or name of a song from YouTube or Spotify.")
@@ -78,6 +108,7 @@ async def play(interaction: Interaction, song: str, platform: str = "spotify") -
 
     while voice_client.is_playing() or not queue.empty():
         await asyncio.sleep(1)
+        audio.stream.volume = playback_volume
 
         if not voice_client.is_playing() and not queue.empty():
             audio, song = await queue.get()
