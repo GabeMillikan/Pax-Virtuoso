@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import asyncio
-
 import discord
 from discord import Interaction, app_commands
 
 from bot import tree
 
 from . import ui
+from .song_player import SongPlayer
 from .streaming import spotify, youtube
 
 MAXIMUM_VOLUME = 150  # percent
@@ -74,7 +73,6 @@ async def play(interaction: Interaction, song: str, platform: str = "spotify") -
     """
     Plays a song from YouTube or Spotify.
     """
-    queue = asyncio.Queue()
     guild = interaction.guild
     member = interaction.user
     if not isinstance(member, discord.Member) or not guild:
@@ -105,43 +103,14 @@ async def play(interaction: Interaction, song: str, platform: str = "spotify") -
         audio = await youtube.fetch(song)
     else:
         audio = await spotify.fetch(song)
-    await audio.preload()
 
-    if isinstance(guild.voice_client, discord.VoiceClient):
-        voice_client = guild.voice_client
-        await voice_client.move_to(channel)
-    else:
-        voice_client = await channel.connect()
-
-    if not voice_client.is_playing():
-        voice_client.play(
-            audio.stream,
-            after=lambda e: print(f"Player error: {e}") if e else None,
-        )
-        embed = ui.embed_song(audio, title_prefix="Now Playing: ")
-    else:
-        await queue.put((audio, song))
-        embed = ui.embed_song(audio, title_prefix="Added to Queue: ")
-
-    embed.add_field(name="Requested By", value=interaction.user.mention)
-    embed.add_field(name="Voice Channel", value=channel.mention)
-    await interaction.followup.send(embed=embed)
-
-    while voice_client.is_playing() or not queue.empty():
-        await asyncio.sleep(1)
-        audio.stream.volume = playback_volume
-
-        if not voice_client.is_playing() and not queue.empty():
-            audio, song = await queue.get()
-            voice_client.play(
-                audio.stream,
-                after=lambda e: print(f"Player error: {e}") if e else None,
-            )
-
-            embed = ui.embed_song(audio, title_prefix="Now Playing: ")
-            embed.add_field(name="Requested By", value=interaction.user.mention)
-            embed.add_field(name="Voice Channel", value=channel.mention)
-            await interaction.followup.send(embed=embed)
+    song_player = SongPlayer.get_or_create(guild)
+    await song_player.play_or_queue(
+        audio,
+        channel,
+        interaction.user,
+        interaction.followup,
+    )
 
 
 @tree.command(description="Skips the current song in the queue")
@@ -156,30 +125,37 @@ async def skip(interaction: Interaction) -> None:
         )
         return
 
-    if guild.voice_client is None:
+    song_player = SongPlayer.get(guild)
+
+    if not song_player or not song_player.currently_playing:
         await interaction.response.send_message(
             "I am not playing music.",
+            ephemeral=True,
+            delete_after=3,
         )
         return
 
-    voice_client = None
-    if isinstance(guild.voice_client, discord.VoiceClient):
-        voice_client = guild.voice_client
+    skipping = song_player.currently_playing
 
-    if voice_client is None or not voice_client.is_playing():
-        await interaction.response.send_message(
-            "There is no music playing to skip.",
-        )
-        return
-
-    voice_client.stop()
-    await interaction.response.defer()
-
-    # TODO: maybe say what the current song is?
-    # or at least reply to the relevant "Now Playing" message
-    await interaction.followup.send(
-        embed=discord.Embed(title="Skipped the Current Song", color=ui.BLUE),
+    embed = discord.Embed(
+        title=f"Skipped: {skipping.song.title}",
+        color=ui.BLUE,
+        url=skipping.song.url,
     )
+    embed.set_thumbnail(url=skipping.song.image_url)
+    if isinstance(skipping.song, youtube.Song):
+        embed.add_field(
+            name="Channel",
+            value=f"[{skipping.song.artist}]({skipping.song.artist_url})\n{skipping.song.subscribers:,} Subscribers",
+        )
+    else:
+        embed.add_field(
+            name="Artist",
+            value=f"[{skipping.song.artist}]({skipping.song.artist_url})",
+        )
+
+    await interaction.response.send_message(embed=embed)
+    song_player.skip_current_song()
 
 
 @tree.command(description="Stops playing music")
@@ -194,14 +170,23 @@ async def stop(interaction: Interaction) -> None:
         )
         return
 
-    if guild.voice_client is None:
+    song_player = SongPlayer.get(guild)
+    skipped_song_count = len(song_player.queued_songs) if song_player else 0
+
+    if skipped_song_count <= 0:
         await interaction.response.send_message(
             "I am not playing music.",
+            ephemeral=True,
+            delete_after=3,
         )
         return
+    assert song_player is not None
 
-    await interaction.response.defer()
-    await guild.voice_client.disconnect(force=False)
-    await interaction.followup.send(
-        embed=discord.Embed(title="Stopped Playing Music", color=ui.BLUE),
+    song_player.stop()
+    await interaction.response.send_message(
+        embed=discord.Embed(
+            title="Stopped Playing Music",
+            description=f"{skipped_song_count} song(s) were removed from the queue.",
+            color=ui.BLUE,
+        ),
     )

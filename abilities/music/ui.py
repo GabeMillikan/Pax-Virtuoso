@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import discord
 
+from .streaming.common import Song as BaseSong
+from .streaming.spotify import Song as SpotifySong
 from .streaming.youtube import Song as YoutubeSong
-
-if TYPE_CHECKING:
-    from .streaming.spotify import Song as SpotifySong
 
 BLUE = 0x51A8DB
 
 
 def embed_song(
-    song: YoutubeSong | SpotifySong,
+    song: BaseSong,
     title_prefix: str = "Now Playing: ",
 ) -> discord.Embed:
     e = discord.Embed(
@@ -45,7 +42,7 @@ def embed_song(
             name="Upload Date",
             value=f"<t:{song.uploaded_at}:D> (<t:{song.uploaded_at}:R>)",
         )
-    else:
+    elif isinstance(song, SpotifySong):
         e.insert_field_at(
             index=0,
             name="Artist",
