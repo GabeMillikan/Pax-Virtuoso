@@ -90,11 +90,11 @@ class SpotifyTrackMetadata:
 
 @dataclass
 class Song(BaseSong):
+    platform_color: ClassVar[int] = 0x1DB954
+
     youtube_song: youtube.Song
     track_id: str
     released_at: int  # unix timestamp
-
-    platform_color: int = 0x1DB954
 
 
 spotify_client = Spotify(

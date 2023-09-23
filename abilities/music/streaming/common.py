@@ -4,7 +4,7 @@ import asyncio
 import subprocess
 from dataclasses import dataclass
 from math import log
-from typing import IO
+from typing import IO, ClassVar
 
 import discord
 from discord.oggparse import OggStream
@@ -130,6 +130,8 @@ def transmux_to_ogg_opus(audio_data_stream: IO[bytes]) -> IO[bytes]:
 
 @dataclass
 class Song:
+    platform_color: ClassVar[int] = 0x51A8DB  # subclasses should overwrite
+
     title: str
     artist: str
     artist_url: str

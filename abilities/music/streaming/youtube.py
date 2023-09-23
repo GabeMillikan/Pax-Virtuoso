@@ -5,7 +5,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from math import ceil
-from typing import Callable, TypeVar
+from typing import Callable, ClassVar, TypeVar
 
 from .common import BufferedOpusAudioSource, transmux_to_ogg_opus
 from .common import Song as BaseSong
@@ -13,12 +13,12 @@ from .common import Song as BaseSong
 
 @dataclass
 class Song(BaseSong):
+    platform_color: ClassVar[int] = 0xFF0000
+
     video_id: str
     view_count: int
     uploaded_at: int  # unix timestamp
     subscribers: int
-
-    platform_color: int = 0xFF0000
 
 
 T = TypeVar("T")
