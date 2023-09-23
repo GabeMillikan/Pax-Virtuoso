@@ -7,9 +7,8 @@ from datetime import datetime, timezone
 from math import ceil
 from typing import Callable, ClassVar, TypeVar
 
-from .common import BufferedOpusAudioSource
+from .common import BufferedOpusAudioSource, transmux_to_ogg_opus
 from .common import Song as BaseSong
-from .common import transmux_to_ogg_opus
 
 
 @dataclass

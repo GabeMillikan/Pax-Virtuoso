@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import discord
 
-from .streaming.common import Song as BaseSong
 from .streaming.spotify import Song as SpotifySong
 from .streaming.youtube import Song as YoutubeSong
+
+if TYPE_CHECKING:
+    from .streaming.common import Song as BaseSong
 
 BLUE = 0x51A8DB
 

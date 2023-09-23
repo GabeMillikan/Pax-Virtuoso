@@ -117,7 +117,7 @@ class SongPlayer:
                 song=song,
                 requested_by=requested_by,
                 send_followups_to=send_followups_to,
-            )
+            ),
         )
         assert self.currently_playing is not None
 
