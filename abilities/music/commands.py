@@ -147,12 +147,18 @@ async def skip(interaction: Interaction) -> None:
         embed.add_field(
             name="Channel",
             value=f"[{skipping.song.artist}]({skipping.song.artist_url})\n{skipping.song.subscribers:,} Subscribers",
+            inline=False,
         )
     else:
         embed.add_field(
             name="Artist",
             value=f"[{skipping.song.artist}]({skipping.song.artist_url})",
+            inline=False,
         )
+
+    embed.add_field(name="Requested By", value=skipping.requested_by.mention)
+
+    embed.add_field(name="Skipped By", value=interaction.user.mention)
 
     await interaction.response.send_message(embed=embed)
     song_player.skip_current_song()
