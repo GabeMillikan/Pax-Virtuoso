@@ -7,8 +7,9 @@ from datetime import datetime, timezone
 from math import ceil
 from typing import Callable, ClassVar, TypeVar
 
-from .common import BufferedOpusAudioSource, transmux_to_ogg_opus
+from .common import BufferedOpusAudioSource
 from .common import Song as BaseSong
+from .common import transmux_to_ogg_opus
 
 
 @dataclass
@@ -77,7 +78,9 @@ def fetch_synchronously(song: str) -> Song:
     assert download_process.stderr
     printed_info_stream = download_process.stderr
 
-    encoded_audio_stream = transmux_to_ogg_opus(download_process.stdout)
+    encoded_audio_stream, transmuxing_process = transmux_to_ogg_opus(
+        download_process.stdout
+    )
 
     (
         video_id,
@@ -108,7 +111,10 @@ def fetch_synchronously(song: str) -> Song:
             0,
         ),
         subscribers=convert(channel_follower_count, int, 0),
-        stream=BufferedOpusAudioSource(encoded_audio_stream),
+        stream=BufferedOpusAudioSource(
+            encoded_audio_stream,
+            [download_process, transmuxing_process],
+        ),
     )
 
 

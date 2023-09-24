@@ -4,7 +4,7 @@ import asyncio
 import subprocess
 from dataclasses import dataclass
 from math import log
-from typing import IO, ClassVar
+from typing import IO, ClassVar, Iterable
 
 import discord
 from discord.oggparse import OggStream
@@ -25,8 +25,14 @@ OPUS_FRAME_SIZE = OPUS_SAMPLE_RATE // (1000 // OPUS_FRAME_DURATION)
 
 
 class BufferedOpusAudioSource(discord.AudioSource):
-    def __init__(self: BufferedOpusAudioSource, stream: IO[bytes]) -> None:
+    def __init__(
+        self: BufferedOpusAudioSource,
+        stream: IO[bytes],
+        cleanup_processes: Iterable[subprocess.Popen] = (),
+    ) -> None:
         self.stream = OggStream(stream)
+        self.cleanup_processes = cleanup_processes
+
         self.packets_iterator = self.stream.iter_packets()
         self.peeked_packet: bytes | None = None
 
@@ -98,8 +104,14 @@ class BufferedOpusAudioSource(discord.AudioSource):
     def is_opus() -> bool:
         return True
 
+    def cleanup(self: BufferedOpusAudioSource) -> None:
+        for process in self.cleanup_processes:
+            process.kill()
 
-def transmux_to_ogg_opus(audio_data_stream: IO[bytes]) -> IO[bytes]:
+
+def transmux_to_ogg_opus(
+    audio_data_stream: IO[bytes],
+) -> tuple[IO[bytes], subprocess.Popen]:
     encoding_process = subprocess.Popen(
         [
             "ffmpeg",
@@ -125,7 +137,7 @@ def transmux_to_ogg_opus(audio_data_stream: IO[bytes]) -> IO[bytes]:
     )
     assert encoding_process.stdout
 
-    return encoding_process.stdout
+    return encoding_process.stdout, encoding_process
 
 
 @dataclass
