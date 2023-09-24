@@ -7,9 +7,8 @@ from datetime import datetime, timezone
 from math import ceil
 from typing import Callable, ClassVar, TypeVar
 
-from .common import BufferedOpusAudioSource
+from .common import BufferedOpusAudioSource, transmux_to_ogg_opus
 from .common import Song as BaseSong
-from .common import transmux_to_ogg_opus
 
 
 @dataclass
@@ -79,7 +78,7 @@ def fetch_synchronously(song: str) -> Song:
     printed_info_stream = download_process.stderr
 
     encoded_audio_stream, transmuxing_process = transmux_to_ogg_opus(
-        download_process.stdout
+        download_process.stdout,
     )
 
     (
