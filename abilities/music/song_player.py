@@ -75,7 +75,10 @@ class SongPlayer:
             voice_client = self.voice_client
 
         def after(e: BaseException | None) -> None:
-            print(f"Error occurred in SongPlayer: {e!r}. Advancing to the next song.")
+            if e:
+                print(
+                    f"Error occurred in SongPlayer: {e!r}. Advancing to the next song.",
+                )
 
             # Remove the current song from the queue (since it's completed)
             self.queued_songs.pop(0)
