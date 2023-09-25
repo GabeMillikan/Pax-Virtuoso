@@ -11,7 +11,7 @@ from discord.oggparse import OggStream
 from pydub import AudioSegment
 
 
-class OpuslibLoadError(Exception):
+class OpuslibLoadError(ImportError):
     """Raised when opuslib fails to load."""
 
 
