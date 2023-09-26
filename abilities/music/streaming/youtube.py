@@ -65,6 +65,8 @@ def fetch_synchronously(song: str) -> Song:
             "ytsearch",
             "--format",
             "bestaudio/best",
+            "--max-downloads",
+            "1",
             song,
             "-o",
             "-",
