@@ -34,6 +34,10 @@ click==8.1.7
     # via
     #   black
     #   pip-tools
+colorama==0.4.6
+    # via
+    #   build
+    #   click
 discord-py[voice]==2.3.2
     # via -r requirements.in
 frozenlist==1.4.0
