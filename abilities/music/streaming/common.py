@@ -10,11 +10,16 @@ import discord
 from discord.oggparse import OggStream
 from pydub import AudioSegment
 
+
+class OpuslibLoadError(ImportError):
+    """Raised when opuslib fails to load."""
+
+
 try:
     import opuslib
 except Exception as e:
     msg = "`opuslib` failed to load. Did you install the Opus codec? Please see ./abilities/music/streaming/opus-binary/README.md"
-    raise Exception(msg) from e
+    raise OpuslibLoadError(msg) from e
 
 OPUS_APPLICATION = "audio"
 OPUS_FRAME_DURATION = 20  # milliseconds
@@ -75,8 +80,8 @@ class BufferedOpusAudioSource(discord.AudioSource):
 
         segment = self.adjust_volume(segment)
 
-        assert isinstance(segment._data, bytes)
-        return self.encoder.encode(segment._data, OPUS_FRAME_SIZE)
+        assert isinstance(segment.raw_data, bytes)
+        return self.encoder.encode(segment.raw_data, OPUS_FRAME_SIZE)
 
     def read(self: BufferedOpusAudioSource) -> bytes:
         if self.peeked_packet is not None:
