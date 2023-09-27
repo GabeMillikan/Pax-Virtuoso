@@ -1,0 +1,1 @@
+* * * * * cd ~/Pax-Virtuoso && venv/bin/python cron/start.py
