@@ -96,7 +96,7 @@ def test_postprocess_packet(
     expected_output: bytes,
     message: str,
 ) -> None:
-    source = BufferedOpusAudioSource(io.BytesIO(b"".join(packets)))
+    source = BufferedOpusAudioSource(io.BytesIO(b""))
     source.volume = volume
 
     output = None
