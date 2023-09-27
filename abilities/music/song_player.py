@@ -38,6 +38,18 @@ class SongPlayer:
     def __init__(self: SongPlayer, guild: discord.Guild) -> None:
         self.guild = guild
         self.queued_songs: list[QueuedSong] = []
+        self._volume: float = 1.0
+
+    @property
+    def volume(self: SongPlayer) -> float:
+        return self._volume
+
+    @volume.setter
+    def volume(self: SongPlayer, value: float) -> None:
+        self._volume = value
+
+        for queued in self.queued_songs:
+            queued.song.stream.volume = value
 
     @property
     def currently_playing(self: SongPlayer) -> QueuedSong | None:
@@ -115,6 +127,7 @@ class SongPlayer:
             embed.add_field(name="Voice Channel", value=channel.mention)
             await send_followups_to.send(embed=embed)
 
+        song.stream.volume = self.volume
         self.queued_songs.append(
             QueuedSong(
                 song=song,
