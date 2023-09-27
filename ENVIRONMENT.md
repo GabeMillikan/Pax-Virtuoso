@@ -30,3 +30,14 @@ Below, you can find a description of each variable.
 ### `API_TOKEN`
 
 This is the token that Discord provides on the "Applications" page under the "Bot" tab (right below your bot's username). Be careful not to share the token with anyone.
+
+
+### `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`
+
+The values passed to `spotipy.SpotifyClientCredentials`, used to access the Spotify API.
+You can create your own spotify app on the developer page and get your own values from there.
+Alternatively, you can just use the [public SpotDL app's values](https://github.com/spotDL/spotify-downloader/blob/920442e134292e892b762b4fdf7f69aeafc3c972/spotdl/utils/config.py#L252-L253) which works fine.
+
+### `DEV_GUILD_ID`
+
+The Guild ID in which development commands (see: [abilities/development.py](./abilities/development.py)) such as `/view-logs` and `/reboot` are enabled.
