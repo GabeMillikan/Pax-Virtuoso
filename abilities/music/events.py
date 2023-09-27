@@ -1,5 +1,3 @@
-import time
-
 import discord
 
 from bot import client
