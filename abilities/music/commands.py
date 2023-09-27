@@ -10,7 +10,6 @@ from .song_player import SongPlayer
 from .streaming import spotify, youtube
 
 MAXIMUM_VOLUME = 150  # percent
-playback_volume = 1.0
 
 
 async def song_autocomplete(
@@ -34,7 +33,13 @@ async def song_autocomplete(
 @tree.command(description="Sets the volume")
 @app_commands.describe(volume="The volume to play at, such as '50' for half volume.")
 async def volume(interaction: Interaction, volume: float) -> None:
-    global playback_volume
+    if not interaction.guild or not (song_player := SongPlayer.get(interaction.guild)):
+        await interaction.response.send_message(
+            "I'm not playing music.",
+            ephemeral=True,
+        )
+        return
+
     if volume < 0:
         await interaction.response.send_message(
             "Volume cannot be negative.",
@@ -49,7 +54,8 @@ async def volume(interaction: Interaction, volume: float) -> None:
         )
         return
 
-    playback_volume = volume / 100
+    song_player.volume = volume / 100
+
     await interaction.response.send_message(
         embed=discord.Embed(
             title=f"Volume Set To {volume:.4g}%",
