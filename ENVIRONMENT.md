@@ -31,7 +31,6 @@ Below, you can find a description of each variable.
 
 This is the token that Discord provides on the "Applications" page under the "Bot" tab (right below your bot's username). Be careful not to share the token with anyone.
 
-
 ### `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`
 
 The values passed to `spotipy.SpotifyClientCredentials`, used to access the Spotify API.
