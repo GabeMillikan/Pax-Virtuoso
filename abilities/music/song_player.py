@@ -41,11 +41,11 @@ class SongPlayer:
         self._volume: float = 1.0
 
     @property
-    def volume(self) -> float:
+    def volume(self: SongPlayer) -> float:
         return self._volume
 
     @volume.setter
-    def volume(self, value: float) -> None:
+    def volume(self: SongPlayer, value: float) -> None:
         self._volume = value
 
         for queued in self.queued_songs:
