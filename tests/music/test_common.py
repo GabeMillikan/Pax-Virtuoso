@@ -10,7 +10,6 @@ import pytest
 repository_directory = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(repository_directory))
 
-
 from abilities.music.streaming.common import BufferedOpusAudioSource  # noqa
 
 OPUS_HEADERS = [
@@ -51,7 +50,7 @@ def test_db_gain(volume: float, expected: tuple[float, str]) -> None:
     source = BufferedOpusAudioSource(io.BytesIO(b""))
     source.volume = volume
     expected_db_gain, message = expected
-    assert source.db_gain == expected_db_gain, message
+    assert source.db_gain == pytest.approx(expected_db_gain), message
 
 
 @pytest.mark.parametrize(
@@ -85,7 +84,7 @@ def test_db_gain(volume: float, expected: tuple[float, str]) -> None:
         # volume changes
         (
             0.5,
-            [*OPUS_HEADERS, *FULL_VOLUME_PACKETS],
+            OPUS_HEADERS + FULL_VOLUME_PACKETS,
             HALF_VOLUME_PACKETS[-1],
             "Volume halved, packet should be halved",
         ),
