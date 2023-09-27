@@ -52,4 +52,4 @@ try:
 
         time.sleep(5)
 finally:
-    lock_file.unlink()
+    lock_file.unlink(missing_ok=True)
