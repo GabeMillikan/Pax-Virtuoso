@@ -34,10 +34,6 @@ click==8.1.7
     # via
     #   black
     #   pip-tools
-colorama==0.4.6
-    # via
-    #   build
-    #   click
 discord-py[voice]==2.3.2
     # via -r requirements.in
 frozenlist==1.4.0
@@ -98,7 +94,7 @@ wheel==0.41.2
     # via pip-tools
 yarl==1.9.2
     # via aiohttp
-yt-dlp==2023.9.24
+yt-dlp==2023.10.13
     # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
