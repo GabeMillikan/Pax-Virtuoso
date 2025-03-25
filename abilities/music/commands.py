@@ -24,7 +24,7 @@ async def song_autocomplete(
     return [
         app_commands.Choice(
             name=track.youtube_search_term[:100],
-            value=track.url if len(track.url) < 100 else track.title[:100],
+            value=track.youtube_search_term[:100],
         )
         for track in tracks[:10]
     ]
