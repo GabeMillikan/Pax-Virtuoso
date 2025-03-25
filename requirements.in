@@ -1,9 +1,8 @@
-black==23.9.1
-cachetools==5.3.1
-discord.py[voice]==2.3.2
-opuslib==3.0.1
-pip-tools==7.3.0
-pydub==0.25.1
-python-dotenv==1.0.0
-spotipy==2.23.0
-yt-dlp==2023.9.24
+black
+cachetools
+discord.py[voice]
+opuslib
+pydub
+python-dotenv
+spotipy
+yt-dlp

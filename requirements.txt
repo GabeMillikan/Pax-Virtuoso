@@ -4,103 +4,75 @@
 #
 #    pip-compile
 #
-aiohttp==3.8.5
+aiohappyeyeballs==2.6.1
+    # via aiohttp
+aiohttp==3.11.14
     # via discord-py
-aiosignal==1.3.1
+aiosignal==1.3.2
     # via aiohttp
-async-timeout==4.0.3
+attrs==25.3.0
     # via aiohttp
-attrs==23.1.0
-    # via aiohttp
-black==23.9.1
+black==25.1.0
     # via -r requirements.in
-brotli==1.1.0
-    # via yt-dlp
-build==1.0.3
-    # via pip-tools
-cachetools==5.3.1
+cachetools==5.5.2
     # via -r requirements.in
-certifi==2023.7.22
-    # via
-    #   requests
-    #   yt-dlp
-cffi==1.15.1
+certifi==2025.1.31
+    # via requests
+cffi==1.17.1
     # via pynacl
-charset-normalizer==3.2.0
-    # via
-    #   aiohttp
-    #   requests
-click==8.1.7
-    # via
-    #   black
-    #   pip-tools
+charset-normalizer==3.4.1
+    # via requests
+click==8.1.8
+    # via black
 colorama==0.4.6
-    # via
-    #   build
-    #   click
-discord-py[voice]==2.3.2
+    # via click
+discord-py[voice]==2.5.2
     # via -r requirements.in
-frozenlist==1.4.0
+frozenlist==1.5.0
     # via
     #   aiohttp
     #   aiosignal
-idna==3.4
+idna==3.10
     # via
     #   requests
     #   yarl
-multidict==6.0.4
+multidict==6.2.0
     # via
     #   aiohttp
     #   yarl
-mutagen==1.47.0
-    # via yt-dlp
 mypy-extensions==1.0.0
     # via black
 opuslib==3.0.1
     # via -r requirements.in
-packaging==23.1
+packaging==24.2
+    # via black
+pathspec==0.12.1
+    # via black
+platformdirs==4.3.7
+    # via black
+propcache==0.3.0
     # via
-    #   black
-    #   build
-pathspec==0.11.2
-    # via black
-pip-tools==7.3.0
-    # via -r requirements.in
-platformdirs==3.10.0
-    # via black
-pycparser==2.21
+    #   aiohttp
+    #   yarl
+pycparser==2.22
     # via cffi
-pycryptodomex==3.19.0
-    # via yt-dlp
 pydub==0.25.1
     # via -r requirements.in
 pynacl==1.5.0
     # via discord-py
-pyproject-hooks==1.0.0
-    # via build
-python-dotenv==1.0.0
+python-dotenv==1.0.1
     # via -r requirements.in
-redis==5.0.0
+redis==5.2.1
     # via spotipy
-requests==2.31.0
+requests==2.32.3
     # via spotipy
-six==1.16.0
-    # via spotipy
-spotipy==2.23.0
+spotipy==2.25.1
     # via -r requirements.in
-urllib3==2.0.5
+urllib3==2.3.0
     # via
     #   requests
     #   spotipy
-websockets==11.0.3
-    # via yt-dlp
-wheel==0.41.2
-    # via pip-tools
-yarl==1.9.2
+yarl==1.18.3
     # via aiohttp
-yt-dlp==2023.9.24
+yt-dlp==2025.3.25
     # via -r requirements.in
-
-# The following packages are considered to be unsafe in a requirements file:
-# pip
-# setuptools
